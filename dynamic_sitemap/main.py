@@ -95,14 +95,12 @@ class SitemapConfig:
 class SitemapMeta(metaclass=ABCMeta):
     """The base class to inherit"""
 
-    urlset_attrs = (
-        'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
-        'xsi:schemaLocation='
-        '"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"'
-    )
-
-    attrs = dict([i.replace('"', '').split('=') for i in urlset_attrs])
+    attrs = {
+        'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
+        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'xsi:schemaLocation':
+            'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd'
+    }
 
     queries = {
         'flask': 'model.query.all()',
@@ -191,12 +189,13 @@ class SitemapMeta(metaclass=ABCMeta):
         """
         pass
 
-    def _copy_template(self, folder: str):
+    def _copy_template(self, folder: [str, list, tuple]):
         """Copies an xml file with Jinja2 template to an app templates directory
-        :param folder: a template folder
+        :param folder: a template folder or a path to
         """
-        root = abspath(self.app.__module__).rsplit('/', 1)[0]
         source = join('templates', 'jinja2.xml')
+        root = abspath(self.app.__module__).rsplit('/', 1)[0]
+        folder = folder if isinstance(folder, str) else join(folder)
         filename = join(root, folder, 'sitemap.xml')
 
         if not exists(filename):

@@ -12,7 +12,14 @@ def test_add_rule(flask_map, priority):
 
 
 def test_build_static(flask_map):
-    path = os.path.join('tmp', 'static.xml')
+    path = os.path.join(os.path.abspath('.'), 'tmp', 'static.xml')
     flask_map.add_rule('/app', Model, lastmod='created')
     flask_map.build_static(path)
     assert os.path.exists(path)
+
+
+if __name__ == '__main__':
+    # for manual test
+    sitemap = FlaskSitemap(FlaskApp, 'http://site.com', config)
+    sitemap.add_rule('/app', Model)
+    sitemap.build_static()
