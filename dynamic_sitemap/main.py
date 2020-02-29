@@ -223,7 +223,7 @@ class SitemapMeta(metaclass=ABCMeta):
                 self.log.error(error)
                 raise Exception(error) from e
 
-    def _exclude(self) -> list:
+    def _exclude(self) -> iter:
         """Excludes URIs in config.IGNORED from self.rules"""
         self.rules, public_uris = tee(self.rules, 2)
 
@@ -248,10 +248,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
         for uri in uris:
             self.log.debug(f'Preparing Records for {uri}')
-            if not ':' in uri:
-                splitted = split(r'/<[\w:]+>', uri, maxsplit=1)
-            else:
-                splitted = []
+            splitted = split(r'/<[\w:]+>', uri, maxsplit=1)
 
             if len(splitted) > 1:
                 replaced = self._replace_patterns(uri, splitted)
