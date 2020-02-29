@@ -213,7 +213,7 @@ class SitemapMeta(metaclass=ABCMeta):
             if not self.config.DEBUG:
                 msg = 'Sitemap already exists. Operation stopped'
                 self.log.error(msg)
-                raise Exception(msg)
+                raise FileExistsError(msg)
 
     def _exclude(self) -> iter:
         """Excludes URIs in config.IGNORED from self.rules"""

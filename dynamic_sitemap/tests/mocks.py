@@ -2,6 +2,8 @@ from copy import copy
 from datetime import datetime
 from logging import getLogger
 
+from .. import SitemapMeta
+
 
 class FuncMock:
     """A class for creating function mocks for testing
@@ -60,6 +62,11 @@ class Mock:
         return instance
 
 
+class DefaultSitemap(SitemapMeta):
+    def __init__(self, app, base_url: str, config_obj=None):
+        super().__init__(app, base_url, config_obj)
+
+
 config = Mock(DEBUG=True, IGNORED=['/ign'])
 record = Mock('slug', 'lastmod')
 rule = Mock(methods=['GET'], rule='/url')
@@ -68,7 +75,7 @@ rule = Mock(methods=['GET'], rule='/url')
 class Model:
     query = Mock(all=lambda: [record()]*5)
     objects = Mock(all=lambda: [record()]*5)
-    created = datetime.now()
+    updated = datetime.now()
 
 
 class FlaskApp:

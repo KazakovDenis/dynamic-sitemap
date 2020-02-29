@@ -1,18 +1,29 @@
 import os
 import pytest
 
-from ..flask_map import FlaskSitemap
+from .. import FlaskSitemap
 from .mocks import *
+
+
+template_folder = os.path.join(os.path.abspath('.'), 'dynamic_sitemap', 'tmp')
+template = template_folder + '/sitemap.xml'
+
+
+@pytest.fixture(autouse=True, scope='session')
+def default_map():
+    """Creates an instance of a basis sitemap object"""
+    sitemap = DefaultSitemap(Mock, 'http://site.com', config_obj=config)
+    sitemap.log = getLogger('sitemap')
+    return sitemap
 
 
 @pytest.fixture(autouse=True, scope='session')
 def flask_map():
     """Creates an instance of FlaskSitemap"""
-    return FlaskSitemap(FlaskApp(), 'http://site.com', config_obj=config)
+    return FlaskSitemap(FlaskApp, 'http://site.com', config_obj=config)
 
 
 def teardown_module():
-    tmp = os.path.join(os.path.abspath('.'), 'dynamic_sitemap', 'tmp')
-    for file in os.listdir(tmp):
+    for file in os.listdir(template_folder):
         if file.rsplit('.', 1)[-1] == 'xml':
-            os.remove(os.path.join(tmp, file))
+            os.remove(os.path.join(template_folder, file))
