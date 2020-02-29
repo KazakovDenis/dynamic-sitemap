@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from dynamic_sitemap.main import *
+from flask_map import FlaskSitemap
 from mocks import *
 
 

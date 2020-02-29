@@ -60,7 +60,7 @@ class Mock:
         return instance
 
 
-config = Mock(IGNORED=['/ign'])
+config = Mock(IGNORED=['/ign'], TEMPLATE_FOLDER=['..', 'tmp'])
 record = Mock('slug', 'lastmod')
 rule = Mock(methods=['GET'], rule='/url')
 

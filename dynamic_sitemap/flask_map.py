@@ -63,7 +63,7 @@ class FlaskSitemap(SitemapMeta):
         self.rules = iter(self.rules)
         self.template_folder = self.config.TEMPLATE_FOLDER or self.app.template_folder
 
-        self._create_template(self.template_folder)
+        self._copy_template(self.template_folder)
         self.log.info(f'Sitemap has been initialized')
 
     def view(self):

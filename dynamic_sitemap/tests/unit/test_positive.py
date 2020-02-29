@@ -12,7 +12,7 @@ def test_add_rule(flask_map, priority):
 
 
 def test_build_static(flask_map):
-    path = os.path.join('tmp', 'sitemap.xml')
+    path = os.path.join('tmp', 'static.xml')
     flask_map.add_rule('/app', Model, lastmod='created')
     flask_map.build_static(path)
     assert os.path.exists(path)

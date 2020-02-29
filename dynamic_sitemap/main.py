@@ -42,6 +42,7 @@ from datetime import datetime
 from itertools import tee
 from os.path import abspath, join, exists
 from re import split
+from shutil import copyfile
 from typing import TypeVar
 from xml.etree import ElementTree as ET
 
@@ -102,22 +103,6 @@ class SitemapMeta(metaclass=ABCMeta):
     )
 
     attrs = dict([i.replace('"', '').split('=') for i in urlset_attrs])
-
-    tree = f"""<?xml version='1.0' encoding='UTF-8'?>
-                <urlset {' '.join(urlset_attrs)}>
-                    {'{% for record in data %}'}
-                        <url>
-                            <loc>{'{{ record.loc }}'}</loc>
-                            {'{% if record.lastmod %}'}
-                                <lastmod>{'{{ record.lastmod }}'}</lastmod>
-                            {'{% endif %}'}
-                            {'{% if record.priority %}'}
-                                <priority>{'{{ record.priority }}'}</priority>
-                            {'{% endif %}'}
-                        </url>
-                    {'{% endfor %}'}
-                </urlset>
-            """
 
     queries = {
         'flask': 'model.query.all()',
@@ -206,22 +191,26 @@ class SitemapMeta(metaclass=ABCMeta):
         """
         pass
 
-    def _create_template(self, folder: str):
-        """Creates an xml file with Jinja2 template in app templates directory
+    def _copy_template(self, folder: str):
+        """Copies an xml file with Jinja2 template to an app templates directory
         :param folder: a template folder
         """
         root = abspath(self.app.__module__).rsplit('/', 1)[0]
-        filename = ''.join((root, '/', folder, '/sitemap.xml'))
+        source = join('templates', 'jinja2.xml')
+        filename = join(root, folder, 'sitemap.xml')
 
         if not exists(filename):
             try:
-                with open(filename, 'w') as file:
-                    file.write(self.tree)
-                    self.log.info(f'Template has been created: {filename}')
+                copyfile(source, filename)
+                self.log.info(f'Template has been created: {filename}')
             except FileNotFoundError as e:
-                error = f'BAD PATH: Seems like {filename} is not found or credentials required.'
+                error = '[BAD PATH] Seems like this path is not found or credentials required: ' + filename
                 self.log.error(error)
                 raise Exception(error) from e
+        else:
+            msg = 'Sitemap already exists. Operation stopped'
+            self.log.error(msg)
+            raise Exception(msg)
 
     def _exclude(self) -> iter:
         """Excludes URIs in config.IGNORED from self.rules"""
