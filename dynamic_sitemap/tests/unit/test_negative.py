@@ -1,4 +1,4 @@
-from conftest import *
+from ..conf import *
 
 
 @pytest.mark.parametrize('priority', [5, -1, '0.5', 'high'])

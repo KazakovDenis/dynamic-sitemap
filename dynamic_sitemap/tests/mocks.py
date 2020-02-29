@@ -60,7 +60,7 @@ class Mock:
         return instance
 
 
-config = Mock(IGNORED=['/ign'])
+config = Mock(DEBUG=True, IGNORED=['/ign'])
 record = Mock('slug', 'lastmod')
 rule = Mock(methods=['GET'], rule='/url')
 
@@ -75,4 +75,4 @@ class FlaskApp:
     extensions = {'sqlalchemy': True}
     url_map = Mock(iter_rules=lambda: [rule(), rule(rule='/ign/<slug>'), rule(rule='/app/<int:page>')])
     logger = getLogger('Flask')
-    template_folder = 'tmp'
+    template_folder = ['dynamic_sitemap', 'tmp']

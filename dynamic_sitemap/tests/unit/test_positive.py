@@ -1,4 +1,4 @@
-from conftest import *
+from ..conf import *
 
 
 def test_create_flask_map(flask_map):
@@ -12,7 +12,7 @@ def test_add_rule(flask_map, priority):
 
 
 def test_build_static(flask_map):
-    path = os.path.join(os.path.abspath('.'), 'tmp', 'static.xml')
+    path = os.path.join(os.path.abspath('.'), 'dynamic_sitemap', 'tmp', 'static.xml')
     flask_map.add_rule('/app', Model, lastmod='created')
     flask_map.build_static(path)
     assert os.path.exists(path)

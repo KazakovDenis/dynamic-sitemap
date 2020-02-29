@@ -65,7 +65,7 @@ class SitemapConfig:
     """
 
     DEBUG = False
-    FOLDER = ('..', )
+    FOLDER = ('.', )
     TEMPLATE_FOLDER = None
     IGNORED = ['/admin', '/static', ]
     INDEX_PRIORITY = CONTENT_PRIORITY = ALTER_PRIORITY = None
@@ -171,7 +171,7 @@ class SitemapMeta(metaclass=ABCMeta):
         try:
             tree.write(fullname, xml_declaration=True, encoding='UTF-8')
         except FileNotFoundError as e:
-            error = f'Seems like {filename} is not found or credentials required.'
+            error = f'Seems like {fullname} is not found or credentials required.'
             self.log.error(error)
             raise Exception(error) from e
 
@@ -193,9 +193,9 @@ class SitemapMeta(metaclass=ABCMeta):
         """Copies an xml file with Jinja2 template to an app templates directory
         :param folder: a template folder or a path to
         """
-        source = join('templates', 'jinja2.xml')
+        source = join('dynamic_sitemap', 'templates', 'jinja2.xml')
         root = abspath(self.app.__module__).rsplit('/', 1)[0]
-        folder = folder if isinstance(folder, str) else join(folder)
+        folder = folder if isinstance(folder, str) else join(*folder)
         filename = join(root, folder, 'sitemap.xml')
 
         if not exists(filename):
@@ -207,9 +207,10 @@ class SitemapMeta(metaclass=ABCMeta):
                 self.log.error(error)
                 raise Exception(error) from e
         else:
-            msg = 'Sitemap already exists. Operation stopped'
-            self.log.error(msg)
-            raise Exception(msg)
+            if not self.config.DEBUG:
+                msg = 'Sitemap already exists. Operation stopped'
+                self.log.error(msg)
+                raise Exception(msg)
 
     def _exclude(self) -> iter:
         """Excludes URIs in config.IGNORED from self.rules"""

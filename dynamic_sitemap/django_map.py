@@ -3,7 +3,7 @@
 This module provides a tool to generate a Sitemap of an application.
 """
 # TODO: Module is not ready
-from main import *
+from .main import *
 
 
 DjangoApp = TypeVar('DjangoApp')
@@ -30,11 +30,11 @@ class DjangoSitemap(SitemapMeta):
 
         self.template_folder = self.config.TEMPLATE_FOLDER    # or self.app.template_folder
 
-        self._create_template(self.template_folder)
+        self._copy_template(self.template_folder)
         self.log.info(f'Sitemap has been initialized')
 
     def view(self):
-        import django
+        # import django
         self._prepare_data()
         self.log.info(f'["request.method"] Requested by "request.remote_add"')
         pass

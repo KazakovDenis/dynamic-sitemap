@@ -33,7 +33,7 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
 Moreover you can get a static file by using:
     sitemap.build_static()
 """
-from main import *
+from .main import *
 
 
 FlaskApp = TypeVar('FlaskApp')
