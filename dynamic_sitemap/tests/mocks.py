@@ -68,13 +68,13 @@ class DefaultSitemap(SitemapMeta):
 
 
 config = Mock(DEBUG=True, IGNORED=['/ign'])
-record = Mock('slug', 'lastmod')
+record = Mock('slug', 'updated', 'priority')
 rule = Mock(methods=['GET'], rule='/url')
 
 
 class Model:
-    query = Mock(all=lambda: [record()]*5)
-    objects = Mock(all=lambda: [record()]*5)
+    query = Mock(all=lambda: [record(slug='first-slug'), record(slug='second-slug')])
+    objects = Mock(all=lambda: [record(slug='first-slug'), record(slug='second-slug')])
     updated = datetime.now()
 
 

@@ -1,9 +1,10 @@
 from ..conf import *
 
+now = datetime.now().strftime('%Y-%m-%dT%H')
+
 
 # Base object tests
 def test_default_create_map(default_map):
-    now = datetime.now().strftime('%Y-%m-%dT%H')
     assert isinstance(default_map.start, str)
     assert now in default_map.start
 
@@ -28,18 +29,37 @@ def test_default_copy_template(default_map):
     assert os.path.exists(template)
 
 
-def test_default_copy_exception(default_map, request):
-    def test_default_copy_exception_teardown():
-        default_map.config.DEBUG = True
-    request.addfinalizer(test_default_copy_exception_teardown)
-    default_map.config.DEBUG = False
-    with pytest.raises(FileExistsError):
-        default_map._copy_template(template_folder)
+def test_default_exclude(default_map):
+    default_map.rules = ['/', '/url', '/<slug>', '/ign']
+    for url in default_map._exclude():
+        assert 'ign' not in url
 
-# todo
-# test_default_exclude
-# test_default_prepare_data
-# test_default_replace_patterns
+
+def test_default_prepare_data(default_map):
+    assert not default_map.data
+    default_map.config.IGNORED.extend(['/<slug>'])
+    default_map._prepare_data()
+    default_map.config.IGNORED.pop(default_map.config.IGNORED.index('/<slug>'))
+    assert default_map.data
+
+
+def test_get_rules(default_map):
+    for url in default_map.get_dynamic_rules():
+        assert '<' in url
+
+
+@pytest.mark.parametrize('prefix', ['/', '/prefix', '/pre/fix'])
+@pytest.mark.parametrize('suffix', ['', '/', '/suffix'])
+def test_default_replace_patterns(default_map, prefix, suffix):
+    uri = '/<slug>'
+    assert uri in default_map.get_dynamic_rules()
+    default_map.query = SitemapMeta.queries['flask']
+    default_map.add_rule(prefix, Model)
+    slug = '/' + Model.query.all()[0].slug
+    record = default_map._replace_patterns(uri, [prefix, suffix])[0]
+    assert record.loc == f'{default_map.url}{prefix}{slug}{suffix}'
+    assert hasattr(record, 'lastmod')
+    assert hasattr(record, 'priority')
 
 
 # FlaskSitemap tests
