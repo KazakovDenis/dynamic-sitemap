@@ -41,7 +41,7 @@ from collections import namedtuple
 from datetime import datetime
 from itertools import tee
 from os.path import abspath, join, exists
-from re import split
+from re import search, split
 from shutil import copyfile
 from typing import TypeVar
 from xml.etree import ElementTree as ET
@@ -125,7 +125,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
         # attributes to override
         self.log = self.config.LOGGER     # an instance of logging.Logger (set in config)
-        self.rules = None                 # a list of URL rules of an app like ['/model/<slug>', '/<path:path>']
+        self.rules = []                   # a list of URL rules of an app like ['/model/<slug>', '/<path:path>']
         self.query = None                 # a query to get all objects of a model: self.queries[framework_name]
 
         # containers
@@ -179,6 +179,11 @@ class SitemapMeta(metaclass=ABCMeta):
             raise Exception(error) from e
 
         self.log.info('Static sitemap is ready')
+
+    def get_dynamic_rules(self):
+        """Returns alls url should be added as a rule or to ignored list"""
+        self.rules, all_rules = tee(self.rules)
+        return [i for i in all_rules if search(r'<[\w:]+>', i)]
 
     def set_debug_level(self):
         """Sets up logger and its handlers levels to Debug"""
@@ -258,21 +263,18 @@ class SitemapMeta(metaclass=ABCMeta):
         :returns a list of Records
         """
 
-        prefix, end = splitted[0], splitted[-1]
-        prefix = '/' if not prefix else prefix
+        prefix, suffix = splitted[0], splitted[-1]
 
-        assert self.models.get(prefix), f"Your should add '{uri}' or it's part to ignored or add a new rule"
+        assert self.models.get(prefix), f"Your should add '{uri}' or it's part to ignored or \
+                                          add a new rule with path '{prefix}'"
 
         model, slug, updated, priority = self.models.get(prefix)
         prepared = []
 
         try:
             for record in eval(self.query):
-                if slug:
-                    uri = getattr(record, slug)
-                    loc = f'{self.url}{prefix}/{uri}{end}'
-                else:
-                    loc = f'{self.url}{prefix}{end}'
+                uri = '/' + getattr(record, slug) if slug else ''
+                loc = f'{self.url}{prefix}{uri}{suffix}'
 
                 if updated:
                     lastmod = getattr(record, updated)
