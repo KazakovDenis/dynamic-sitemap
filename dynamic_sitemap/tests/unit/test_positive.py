@@ -71,10 +71,10 @@ def test_flask_build_static(flask_map):
     flask_map.add_rule('/app', Model, lastmod='created')
     flask_map.build_static(path)
     assert os.path.exists(path)
-
-
-if __name__ == '__main__':
-    # for manual test
-    sitemap = FlaskSitemap(FlaskApp, 'http://site.com', config)
-    sitemap.add_rule('/app', Model)
-    sitemap.build_static()
+#
+#
+# if __name__ == '__main__':
+#     # for manual test
+#     sitemap = FlaskSitemap(FlaskApp, 'http://site.com', config)
+#     sitemap.add_rule('/app', Model)
+#     sitemap.build_static()
