@@ -42,29 +42,31 @@ FlaskApp = TypeVar('FlaskApp')
 class FlaskSitemap(SitemapMeta):
     """A sitemap generator for a Flask application. For usage see the module documentation"""
 
-    def __init__(self, app: FlaskApp, base_url: str, config_obj=None):
+    def __init__(self, app: FlaskApp, base_url: str, config_obj=None, orm: str='sqlalchemy'):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Flask application
-        :param base_url: your base URL such as 'http://site/com'
+        :param base_url: your base URL such as 'http://site.com'
         :param config_obj: a class with configurations
+        :param orm: an ORM name used in project
         """
-        super().__init__(app, base_url, config_obj)
-        assert self.app.extensions.get('sqlalchemy'), 'Flask-SQLAlchemy not found'
+        super().__init__(app, base_url, config_obj, orm)
+        assert self.app.extensions.get(orm), f'{orm} extension is not found'
 
         if not self.log:
             self.log = self.app.logger.getChild('sitemap')
         if self.config.DEBUG:
             self.set_debug_level()
 
-        self.query = self.queries['flask']
-        self.rules = [rule_obj.rule for rule_obj in self.app.url_map.iter_rules() if 'GET' in rule_obj.methods]
-        self.rules.sort(key=len)
-        self.rules = iter(self.rules)
         self.template_folder = self.config.TEMPLATE_FOLDER or self.app.template_folder
-
         self._copy_template(self.template_folder)
         self.log.info(f'Sitemap has been initialized')
+
+    def get_rules(self) -> iter:
+        """Returns an iterator of URL rules"""
+        rules = [rule_obj.rule for rule_obj in self.app.url_map.iter_rules() if 'GET' in rule_obj.methods]
+        rules.sort(key=len)
+        return iter(rules)
 
     def view(self):
         """Generates a response such as Flask views do"""

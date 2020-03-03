@@ -12,12 +12,13 @@ DjangoApp = TypeVar('DjangoApp')
 class DjangoSitemap(SitemapMeta):
     """A sitemap generator for a Django application"""
 
-    def __init__(self, app: DjangoApp, base_url: str, config_obj=None):
+    def __init__(self, app: DjangoApp, base_url: str, config_obj=None, orm: str='django'):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Django application
-        :param base_url: your base URL such as 'http://site/com'
+        :param base_url: your base URL such as 'http://site.com'
         :param config_obj: a class with configurations
+        :param orm: an ORM name used in project
         """
         super().__init__(app, base_url, config_obj)
 
@@ -26,10 +27,7 @@ class DjangoSitemap(SitemapMeta):
         if self.config.DEBUG:
             self.set_debug_level()
 
-        self.query = self.queries['django']
-
         self.template_folder = self.config.TEMPLATE_FOLDER    # or self.app.template_folder
-
         self._copy_template(self.template_folder)
         self.log.info(f'Sitemap has been initialized')
 

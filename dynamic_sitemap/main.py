@@ -106,27 +106,29 @@ class SitemapMeta(metaclass=ABCMeta):
     }
 
     queries = {
-        'flask': 'model.query.all()',
+        'sqlalchemy': 'model.query.all()',
         'django': 'model.objects.all()',
     }
 
     @abstractmethod
-    def __init__(self, app, base_url: str, config_obj=None):
+    def __init__(self, app, base_url: str, config_obj=None, orm: str='sqlalchemy'):
         """Creates an instance of a Sitemap
 
         :param app: an application instance
         :param base_url: your base URL such as 'http://site.com'
         :param config_obj: a class with configurations
+        :param orm: an ORM name used in project
         """
         self.config = SitemapConfig().from_object(config_obj)
         self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         self.app = app
         self.url = base_url
+        orm = orm.casefold()
 
         # attributes to override
         self.log = self.config.LOGGER     # an instance of logging.Logger (set in config)
-        self.rules = []                   # a list of URL rules of an app like ['/model/<slug>', '/<path:path>']
-        self.query = None                 # a query to get all objects of a model: self.queries[framework_name]
+        self.rules = self.get_rules()     # an iterator of URL rules like iter(['/model/<slug>', '/<path:path>'])
+        self.query = self.queries[orm]    # a query to get all objects of a model
 
         # containers
         self.data = []                    # to store Record instances
@@ -180,10 +182,14 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.log.info('Static sitemap is ready')
 
-    def get_dynamic_rules(self):
+    def get_dynamic_rules(self) -> list:
         """Returns alls url should be added as a rule or to ignored list"""
         self.rules, all_rules = tee(self.rules)
         return [i for i in all_rules if search(r'<[\w:]+>', i)]
+
+    def get_rules(self) -> iter:
+        """The method to override"""
+        return iter([])
 
     def set_debug_level(self):
         """Sets up logger and its handlers levels to Debug"""
