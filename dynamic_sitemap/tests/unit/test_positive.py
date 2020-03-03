@@ -20,7 +20,7 @@ def test_default_add_rule(default_map, priority):
 
 
 def test_default_debug_level(default_map):
-    default_map.set_debug_level()
+    default_map.set_debug_level(default_map.log)
     assert default_map.log.level == 10
 
 

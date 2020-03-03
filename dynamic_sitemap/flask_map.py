@@ -53,14 +53,16 @@ class FlaskSitemap(SitemapMeta):
         super().__init__(app, base_url, config_obj, orm)
         assert self.app.extensions.get(orm), f'{orm} extension is not found'
 
-        if not self.log:
-            self.log = self.app.logger.getChild('sitemap')
-        if self.config.DEBUG:
-            self.set_debug_level()
-
         self.template_folder = self.config.TEMPLATE_FOLDER or self.app.template_folder
         self._copy_template(self.template_folder)
         self.log.info(f'Sitemap has been initialized')
+
+    def get_logger(self):
+        """Returns logger"""
+        logger = self.config.LOGGER or self.app.logger.getChild('sitemap')
+        if self.config.DEBUG:
+            self.set_debug_level(logger)
+        return logger
 
     def get_rules(self) -> iter:
         """Returns an iterator of URL rules"""

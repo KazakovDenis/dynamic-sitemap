@@ -123,16 +123,13 @@ class SitemapMeta(metaclass=ABCMeta):
         self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         self.app = app
         self.url = base_url
-        orm = orm.casefold()
-
-        # attributes to override
-        self.log = self.config.LOGGER     # an instance of logging.Logger (set in config)
-        self.rules = self.get_rules()     # an iterator of URL rules like iter(['/model/<slug>', '/<path:path>'])
-        self.query = self.queries[orm]    # a query to get all objects of a model
+        self.log = self.get_logger()
+        self.rules = self.get_rules()
+        self.query = self.queries[orm.casefold()]    # a query to get all objects of a model
 
         # containers
-        self.data = []                    # to store Record instances
-        self.models = {}                  # to store db objects added by add_rule
+        self.data = []                               # to store Record instances
+        self.models = {}                             # to store db objects added by add_rule
 
     def add_rule(self, path: str, model, slug='slug', lastmod: str=None, priority: float=None):
         """Adds a rule to the builder to generate urls by a template using models of an app
@@ -182,19 +179,29 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.log.info('Static sitemap is ready')
 
+    def get_logger(self):
+        """Returns an instance of logging.Logger (set in config)"""
+        logger = self.config.LOGGER
+        if self.config.DEBUG and logger:
+            self.set_debug_level(logger)
+        return logger
+
     def get_dynamic_rules(self) -> list:
         """Returns alls url should be added as a rule or to ignored list"""
         self.rules, all_rules = tee(self.rules)
         return [i for i in all_rules if search(r'<[\w:]+>', i)]
 
     def get_rules(self) -> iter:
-        """The method to override"""
+        """The method to override. Should return an iterator of URL rules"""
         return iter([])
 
-    def set_debug_level(self):
-        """Sets up logger and its handlers levels to Debug"""
-        self.log.setLevel(10)
-        for handler in self.log.handlers:
+    @staticmethod
+    def set_debug_level(logger):
+        """Sets up logger and its handlers levels to Debug
+        :param logger: an instance of logging.Logger
+        """
+        logger.setLevel(10)
+        for handler in logger.handlers:
             handler.setLevel(10)
 
     def view(self) -> Response:
