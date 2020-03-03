@@ -12,9 +12,7 @@ template = template_folder + '/sitemap.xml'
 @pytest.fixture(autouse=True, scope='session')
 def default_map():
     """Creates an instance of a basis sitemap object"""
-    sitemap = DefaultSitemap(Mock, 'http://site.com', config_obj=config)
-    sitemap.log = getLogger('sitemap')
-    return sitemap
+    return DefaultSitemap(Mock, 'http://site.com', config_obj=config)
 
 
 @pytest.fixture(autouse=True, scope='session')

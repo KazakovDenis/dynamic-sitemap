@@ -19,8 +19,8 @@ def test_default_add_rule(default_map, priority):
     assert isinstance(model[3], (float, int))
 
 
-def test_default_debug_level(default_map):
-    default_map.set_debug_level(default_map.log)
+def test_default_get_logger(default_map):
+    default_map.get_logger()
     assert default_map.log.level == 10
 
 
@@ -48,12 +48,11 @@ def test_get_rules(default_map):
         assert '<' in url
 
 
-@pytest.mark.parametrize('prefix', ['/', '/prefix', '/pre/fix'])
+@pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x'])
 @pytest.mark.parametrize('suffix', ['', '/', '/suffix'])
 def test_default_replace_patterns(default_map, prefix, suffix):
     uri = '/<slug>'
     assert uri in default_map.get_dynamic_rules()
-    default_map.query = SitemapMeta.queries['flask']
     default_map.add_rule(prefix, Model)
     slug = '/' + Model.query.all()[0].slug
     record = default_map._replace_patterns(uri, [prefix, suffix])[0]

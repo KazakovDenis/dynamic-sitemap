@@ -67,7 +67,7 @@ class DefaultSitemap(SitemapMeta):
         super().__init__(app, base_url, config_obj)
 
 
-config = Mock(DEBUG=True, IGNORED=['/ign'])
+config = Mock(DEBUG=True, IGNORED=['/ign'], LOGGER=getLogger('sitemap'))
 record = Mock('slug', 'updated', 'priority')
 rule = Mock(methods=['GET'], rule='/url')
 
