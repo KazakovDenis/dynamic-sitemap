@@ -3,8 +3,18 @@ from ..conf import *
 now = datetime.now().strftime('%Y-%m-%dT%H')
 
 
+# Config tests
+def test_config_from_obj(config):
+    class Conf:
+        TEST = True
+        ALTER_PRIORITY = 0.4
+    config.from_object(Conf)
+    assert hasattr(config, 'TEST')
+    assert config.ALTER_PRIORITY
+
+
 # Base object tests
-def test_default_create_map(default_map):
+def test_default_create_map(default_map, config):
     assert isinstance(default_map.start, str)
     assert now in default_map.start
 
@@ -19,17 +29,26 @@ def test_default_add_rule(default_map, priority):
     assert isinstance(model[3], (float, int))
 
 
-def test_default_get_logger(default_map):
+def test_default_get_logger(default_map, request):
+    def teardown():
+        default_map.config.DEBUG = False
+    request.addfinalizer(teardown)
+    default_map.config.DEBUG = True
     default_map.get_logger()
     assert default_map.log.level == 10
 
 
-def test_default_copy_template(default_map):
+def test_default_copy_template(default_map, request):
+    def teardown():
+        default_map.config.DEBUG = False
+    request.addfinalizer(teardown)
+    default_map.config.DEBUG = True
     default_map._copy_template(template_folder)
     assert os.path.exists(template)
 
 
 def test_default_exclude(default_map):
+    default_map.config.IGNORED = ['/ign']
     default_map.rules = ['/', '/url', '/<slug>', '/ign']
     for url in default_map._exclude():
         assert 'ign' not in url
@@ -37,7 +56,7 @@ def test_default_exclude(default_map):
 
 def test_default_prepare_data(default_map):
     assert not default_map.data
-    default_map.config.IGNORED.extend(['/<slug>'])
+    default_map.config.IGNORED = ['/<slug>']
     default_map._prepare_data()
     default_map.config.IGNORED.pop(default_map.config.IGNORED.index('/<slug>'))
     assert default_map.data
@@ -69,6 +88,7 @@ def test_flask_create_map(flask_map):
 def test_flask_build_static(flask_map):
     path = os.path.join(os.path.abspath('.'), 'dynamic_sitemap', 'tmp', 'static.xml')
     flask_map.add_rule('/app', Model, lastmod='created')
+    flask_map.config.IGNORED = ['/ign']
     flask_map.build_static(path)
     assert os.path.exists(path)
 
