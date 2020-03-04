@@ -106,8 +106,9 @@ class SitemapMeta(metaclass=ABCMeta):
     }
 
     queries = {
-        'sqlalchemy': 'model.query.all()',
         'django': 'model.objects.all()',
+        'peewee': 'model.select()',
+        'sqlalchemy': 'model.query.all()',
     }
 
     @abstractmethod
