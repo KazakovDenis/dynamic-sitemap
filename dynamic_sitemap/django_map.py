@@ -20,7 +20,7 @@ class DjangoSitemap(SitemapMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project
         """
-        super().__init__(app, base_url, config_obj)
+        super().__init__(app, base_url, config_obj, orm)
 
         self.template_folder = self.config.TEMPLATE_FOLDER    # or self.app.template_folder
         self._copy_template(self.template_folder)
