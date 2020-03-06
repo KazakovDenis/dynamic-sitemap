@@ -67,7 +67,6 @@ class DefaultSitemap(SitemapMeta):
         super().__init__(app, base_url, config_obj)
 
 
-config = Mock(DEBUG=True, IGNORED=['/ign'], LOGGER=getLogger('sitemap'))
 record = Mock('slug', 'updated', 'priority')
 rule = Mock(methods=['GET'], rule='/url')
 
@@ -79,7 +78,7 @@ class Model:
 
 
 class FlaskApp:
-    extensions = {'sqlalchemy': True}
+    extensions = {'sqlalchemy': True, 'peewee': True}
     url_map = Mock(iter_rules=lambda: [rule(), rule(rule='/ign/<slug>'), rule(rule='/app/<int:page>')])
     logger = getLogger('Flask')
     template_folder = ['dynamic_sitemap', 'tmp']

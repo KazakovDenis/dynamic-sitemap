@@ -106,8 +106,9 @@ class SitemapMeta(metaclass=ABCMeta):
     }
 
     queries = {
-        'sqlalchemy': 'model.query.all()',
         'django': 'model.objects.all()',
+        'peewee': 'model.select()',
+        'sqlalchemy': 'model.query.all()',
     }
 
     @abstractmethod
@@ -278,8 +279,8 @@ class SitemapMeta(metaclass=ABCMeta):
 
         prefix, suffix = splitted[0], splitted[-1]
 
-        assert self.models.get(prefix), f"Your should add '{uri}' or it's part to ignored or \
-                                          add a new rule with path '{prefix}'"
+        assert self.models.get(prefix), f"Your should add '{uri}' or it's part to ignored or "\
+                                        f"add a new rule with path '{prefix}'"
 
         model, slug, updated, priority = self.models.get(prefix)
         prepared = []
