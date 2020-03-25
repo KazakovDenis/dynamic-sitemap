@@ -228,7 +228,7 @@ class SitemapMeta(metaclass=ABCMeta):
                 error = '[BAD PATH] Seems like this path is not found or credentials required: ' + filename
                 self.log.error(error)
                 raise Exception(error) from e
-        # todo
+        # todo: the file is created twice when an app is initialized
         # else:
         #     if not self.config.DEBUG:
         #         msg = 'Sitemap already exists. Operation stopped'
