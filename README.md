@@ -6,10 +6,21 @@ A simple sitemap generator for Python projects.
 Already implemented:
 - Flask
 
+## Installation
+- Download it from this [link](https://github.com/KazakovDenis/dynamic-sitemap/archive/master.zip) and unzip to your project
+  
+or
+- Add it as a git submodule
+```shell script
+git submodule add -b master --name sitemap https://github.com/KazakovDenis/dynamic-sitemap path/to/app/sitemap
+```
+  
+  
+## Usage
 Basic example:
 ```python
 from flask import Flask
-from dynamic_sitemap import FlaskSitemap
+from app.sitemap import FlaskSitemap
 
 app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://mysite.com')
