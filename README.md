@@ -53,3 +53,22 @@ Moreover you can get a static file by using:
 ```python
 sitemap.build_static()
 ```
+
+## Testing  
+Install dependencies before
+```shell script
+pip install -r test_requirements.txt
+```
+
+### Unit testing
+Execute the command below to run unit tests
+```shell script
+python -m pytest
+```
+
+### Coverage
+Execute the command below to check test coverage
+```shell script
+coverage run -m pytest && coverage report -m && coverage html
+```
+and open `htmlcov/index.html` in a browser
