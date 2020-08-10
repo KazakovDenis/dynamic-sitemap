@@ -112,7 +112,7 @@ class SitemapMeta(metaclass=ABCMeta):
     }
 
     @abstractmethod
-    def __init__(self, app, base_url: str, config_obj=None, orm: str='sqlalchemy'):
+    def __init__(self, app, base_url: str, config_obj=None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
 
         :param app: an application instance
@@ -132,7 +132,7 @@ class SitemapMeta(metaclass=ABCMeta):
         self.data = []                               # to store Record instances
         self.models = {}                             # to store db objects added by add_rule
 
-    def add_rule(self, path: str, model, slug='slug', lastmod: str=None, priority: float=None):
+    def add_rule(self, path: str, model, slug='slug', lastmod: str = None, priority: float = None):
         """Adds a rule to the builder to generate urls by a template using models of an app
 
         :param path: a part of URI is used to get a page generated through a model
