@@ -40,13 +40,15 @@ from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from datetime import datetime
 from itertools import tee
-import os
+from os.path import abspath, join, exists
 from re import search, split
 from shutil import copyfile
 from typing import TypeVar
 from xml.etree import ElementTree as ET
 
 
+EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
+TEMPLATE_FILE = join(EXTENSION_ROOT, 'templates', 'jinja2.xml')
 Record = namedtuple('Record', 'loc lastmod priority')
 Response = TypeVar('Response')
 
@@ -68,7 +70,7 @@ class SitemapConfig:
     """
 
     DEBUG = False
-    FOLDER = None
+    FOLDER = None                      # TODO: rename to STATIC_FOLDER
     TEMPLATE_FOLDER = None
     IGNORED = ['/admin', '/static', ]
     INDEX_PRIORITY = CONTENT_PRIORITY = ALTER_PRIORITY = None
@@ -154,7 +156,7 @@ class SitemapMeta(metaclass=ABCMeta):
         """
         self._prepare_data()
 
-        fullname = filename if not isinstance(self.config.FOLDER, str) else os.path.join(*self.config.FOLDER, filename)
+        fullname = filename if not isinstance(self.config.FOLDER, str) else join(*self.config.FOLDER, filename)
         self.log.info(f'Creating {fullname}...')
 
         url_set = ET.Element('urlset', self.attrs)
@@ -215,14 +217,13 @@ class SitemapMeta(metaclass=ABCMeta):
         """Copies an xml file with Jinja2 template to an app templates directory
         :param folder: a template folder or a path to
         """
-        source = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'templates', 'jinja2.xml')
-        root = os.path.abspath(self.app.__module__).rsplit('/', 1)[0]
-        folder = folder if isinstance(folder, str) else os.path.join(*folder)
-        filename = os.path.join(root, folder, 'sitemap.xml')
+        root = abspath(self.app.__module__).rsplit('/', 1)[0]
+        folder = folder if isinstance(folder, str) else join(*folder)
+        filename = join(root, folder, 'sitemap.xml')
 
-        if not os.path.exists(filename):
+        if not exists(filename):
             try:
-                copyfile(source, filename)
+                copyfile(TEMPLATE_FILE, filename)
                 self.log.info(f'Template has been created: {filename}')
             except FileNotFoundError as e:
                 error = '[BAD PATH] Seems like this path is not found or credentials required: ' + filename

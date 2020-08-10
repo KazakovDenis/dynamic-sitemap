@@ -1,8 +1,9 @@
 from copy import copy
 from datetime import datetime
 from logging import getLogger
+import os
 
-from .. import SitemapMeta
+from .. import EXTENSION_ROOT, SitemapMeta
 
 
 class FuncMock:
@@ -81,4 +82,5 @@ class FlaskApp:
     extensions = {'sqlalchemy': True, 'peewee': True}
     url_map = Mock(iter_rules=lambda: [rule(), rule(rule='/ign/<slug>'), rule(rule='/app/<int:page>')])
     logger = getLogger('Flask')
-    template_folder = ['dynamic_sitemap', 'tmp']
+    root_path = os.path.abspath(os.curdir)
+    template_folder = os.path.join(EXTENSION_ROOT, 'tmp')

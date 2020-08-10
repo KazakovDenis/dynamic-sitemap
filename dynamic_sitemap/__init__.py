@@ -1,4 +1,4 @@
-from .main import SitemapConfig, SitemapMeta
+from .main import EXTENSION_ROOT, SitemapConfig, SitemapMeta
 from .django_map import DjangoSitemap
 from .flask_map import FlaskSitemap
 

@@ -8,4 +8,4 @@ install:
   - pip install -r test_requirements.txt
 
 script:
-  - pytest -v
+  - python -m pytest -v

@@ -42,7 +42,7 @@ FlaskApp = TypeVar('FlaskApp')
 class FlaskSitemap(SitemapMeta):
     """A sitemap generator for a Flask application. For usage see the module documentation"""
 
-    def __init__(self, app: FlaskApp, base_url: str, config_obj=None, orm: str='sqlalchemy'):
+    def __init__(self, app: FlaskApp, base_url: str, config_obj=None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Flask application
@@ -53,7 +53,8 @@ class FlaskSitemap(SitemapMeta):
         super().__init__(app, base_url, config_obj, orm)
         assert self.app.extensions.get(orm), f'{orm} extension is not found'
 
-        self.template_folder = self.config.TEMPLATE_FOLDER or self.app.template_folder
+        default_template_folder = join(self.app.root_path, self.app.template_folder)
+        self.template_folder = self.config.TEMPLATE_FOLDER or default_template_folder
         self._copy_template(self.template_folder)
         self.log.info(f'Sitemap has been initialized')
 
