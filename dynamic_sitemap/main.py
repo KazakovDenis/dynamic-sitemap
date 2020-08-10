@@ -76,14 +76,17 @@ class SitemapConfig:
     INDEX_PRIORITY = CONTENT_PRIORITY = ALTER_PRIORITY = None
     LOGGER = None
 
-    def from_object(self, obj):
+    def from_object(self, obj: (type, 'SitemapConfig')):
         """Updates the values from the given object
-        :param obj: a class with the same attributes as this one
+
+        :param obj: a class with the same attributes as this one or it's instance
         """
-        if obj:
+        if isinstance(obj, type) or isinstance(obj, type(self)):
             for key in dir(obj):
                 if key.isupper():
                     self[key] = getattr(obj, key)
+        else:
+            raise NotImplementedError('This type of object is not supported yet')
 
         return self
 

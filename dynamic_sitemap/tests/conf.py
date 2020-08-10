@@ -4,6 +4,10 @@ from .. import FlaskSitemap, SitemapConfig
 from .mocks import *
 
 
+PY_TYPES = int, float, complex, tuple, list, set, dict, str, bytes, bytearray
+FALSE_INSTANCES = (py_type() for py_type in PY_TYPES)
+TRUE_INSTANCES = 1, 1.0, 1+1j, (1,), [1], {1}, {1: 1}, 'str', b'bytes', bytearray(b'array')
+
 TEMPLATE_FOLDER = os.path.join(EXTENSION_ROOT, 'tests', 'tmp')
 TEMPLATE_FILE = os.path.join(TEMPLATE_FOLDER, 'sitemap.xml')
 TEST_URL = 'http://site.com'
