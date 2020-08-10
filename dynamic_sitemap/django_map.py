@@ -12,7 +12,7 @@ DjangoApp = TypeVar('DjangoApp')
 class DjangoSitemap(SitemapMeta):
     """A sitemap generator for a Django application"""
 
-    def __init__(self, app: DjangoApp, base_url: str, config_obj=None, orm: str='django'):
+    def __init__(self, app: DjangoApp, base_url: str, config_obj=None, orm: str = 'django'):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Django application

@@ -56,8 +56,8 @@ def test_default_copy_template(default_map, request):
     request.addfinalizer(teardown)
 
     default_map.config.DEBUG = True
-    default_map._copy_template(template_folder)
-    assert os.path.exists(template)
+    default_map._copy_template(TEMPLATE_FOLDER)
+    assert os.path.exists(TEMPLATE_FILE)
 
 
 def test_default_exclude(default_map):

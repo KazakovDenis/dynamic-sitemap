@@ -57,10 +57,10 @@ class SitemapConfig:
     """A class to set configurations
 
     DEBUG - if True sets up logging to DEBUG level
-    FOLDER - a tuple of folders to make path where to put a STATIC sitemap.xml,
+    STATIC_FOLDER - a str or a collection of folders to make path where to put a STATIC sitemap.xml,
     TEMPLATE_FOLDER - where to put a template for a dynamic sitemap, a tuple of folders
         folders examples:
-            FOLDER = os.path.join('app', 'static')
+            STATIC_FOLDER = os.path.join('app', 'static')
             TEMPLATE_FOLDER = ['app', 'templates']
     IGNORED - a list of strings which ignored URIs contain
     INDEX_PRIORITY - float, a priority of the index page
@@ -70,7 +70,7 @@ class SitemapConfig:
     """
 
     DEBUG = False
-    FOLDER = None                      # TODO: rename to STATIC_FOLDER
+    STATIC_FOLDER = None
     TEMPLATE_FOLDER = None
     IGNORED = ['/admin', '/static', ]
     INDEX_PRIORITY = CONTENT_PRIORITY = ALTER_PRIORITY = None
@@ -156,7 +156,8 @@ class SitemapMeta(metaclass=ABCMeta):
         """
         self._prepare_data()
 
-        fullname = filename if not isinstance(self.config.FOLDER, str) else join(*self.config.FOLDER, filename)
+        folder = self.config.STATIC_FOLDER
+        fullname = filename if not isinstance(folder, str) else join(*folder, filename)
         self.log.info(f'Creating {fullname}...')
 
         url_set = ET.Element('urlset', self.attrs)

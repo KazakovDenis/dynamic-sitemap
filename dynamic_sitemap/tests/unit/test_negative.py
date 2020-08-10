@@ -19,4 +19,4 @@ def test_default_copy_exception(default_map, request):
 
     default_map.config.DEBUG = False
     with pytest.raises(FileExistsError):
-        default_map._copy_template(template_folder)
+        default_map._copy_template(TEMPLATE_FOLDER)
