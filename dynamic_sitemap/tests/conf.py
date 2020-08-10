@@ -4,7 +4,7 @@ from .. import FlaskSitemap, SitemapConfig
 from .mocks import *
 
 
-TEMPLATE_FOLDER = os.path.join(EXTENSION_ROOT, 'tmp')
+TEMPLATE_FOLDER = os.path.join(EXTENSION_ROOT, 'tests', 'tmp')
 TEMPLATE_FILE = os.path.join(TEMPLATE_FOLDER, 'sitemap.xml')
 TEST_URL = 'http://site.com'
 

@@ -39,6 +39,7 @@ Moreover you can get a static file by using:
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from datetime import datetime
+from filecmp import cmp
 from itertools import tee
 from os.path import abspath, join, exists
 from re import search, split
@@ -48,7 +49,6 @@ from xml.etree import ElementTree as ET
 
 
 EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
-TEMPLATE_FILE = join(EXTENSION_ROOT, 'templates', 'jinja2.xml')
 Record = namedtuple('Record', 'loc lastmod priority')
 Response = TypeVar('Response')
 
@@ -70,8 +70,8 @@ class SitemapConfig:
     """
 
     DEBUG = False
-    STATIC_FOLDER = None
-    TEMPLATE_FOLDER = None
+    TEMPLATE_FILE = join(EXTENSION_ROOT, 'templates', 'jinja2.xml')
+    STATIC_FOLDER = TEMPLATE_FOLDER = None
     IGNORED = ['/admin', '/static', ]
     INDEX_PRIORITY = CONTENT_PRIORITY = ALTER_PRIORITY = None
     LOGGER = None
@@ -216,7 +216,11 @@ class SitemapMeta(metaclass=ABCMeta):
 
     def _copy_template(self, folder: [str, list, tuple]):
         """Copies an xml file with Jinja2 template to an app templates directory
+
         :param folder: a template folder or a path to
+        :raises:
+            PermissionError: if unable to copy a template to destination
+            FileExistsError: if another sitemap already exists
         """
         root = abspath(self.app.__module__).rsplit('/', 1)[0]
         folder = folder if isinstance(folder, str) else join(*folder)
@@ -224,18 +228,17 @@ class SitemapMeta(metaclass=ABCMeta):
 
         if not exists(filename):
             try:
-                copyfile(TEMPLATE_FILE, filename)
-                self.log.info(f'Template has been created: {filename}')
+                copyfile(self.config.TEMPLATE_FILE, filename)
+                self.log.info(f'The template has been created: {filename}')
             except FileNotFoundError as e:
-                error = '[BAD PATH] Seems like this path is not found or credentials required: ' + filename
+                error = 'Unable to place file at this path: ' + filename
                 self.log.error(error)
-                raise Exception(error) from e
-        # todo: the file is created twice when an app is initialized
-        # else:
-        #     if not self.config.DEBUG:
-        #         msg = 'Sitemap already exists. Operation stopped'
-        #         self.log.error(msg)
-        #         raise FileExistsError(msg)
+                raise PermissionError(error) from e
+        else:
+            if not cmp(filename, self.config.TEMPLATE_FILE, shallow=False):
+                msg = 'It seems another sitemap already exists. Delete it and retry: ' + filename
+                self.log.error(msg)
+                raise FileExistsError(msg)
 
     def _exclude(self) -> iter:
         """Excludes URIs in config.IGNORED from self.rules"""

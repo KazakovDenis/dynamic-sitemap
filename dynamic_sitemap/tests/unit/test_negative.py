@@ -9,14 +9,16 @@ def test_priority_01(flask_map, priority):
         flask_map.add_rule('/app', Model, priority=priority)
 
 
-@pytest.mark.skip('till not solved: SitemapMeta._copy_template')
-def test_default_copy_exception(default_map, request):
-    """Tests exception which should be raised when sitemap.xml already exists (it's created when Sitemap initializes)
-     and DEBUG set False"""
-    def teardown():
-        default_map.config.DEBUG = True
-    request.addfinalizer(teardown)
+@pytest.mark.parametrize('folder,error,create', [
+        (TEMPLATE_FOLDER, FileExistsError, True),
+        ('no_such_dir', PermissionError, False),
+    ]
+)
+def test_default_copy_exceptions(default_map, folder, error, create):
+    """Tests exception which should be raised when sitemap.xml already exists"""
+    if create:
+        with open(TEMPLATE_FILE, 'w') as f:
+            f.write('Another sitemap file')
 
-    default_map.config.DEBUG = False
-    with pytest.raises(FileExistsError):
-        default_map._copy_template(TEMPLATE_FOLDER)
+    with pytest.raises(error):
+        default_map._copy_template(folder)
