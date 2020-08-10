@@ -100,7 +100,7 @@ def test_flask_create_map(flask_map):
 
 def test_flask_build_static(flask_map):
     """Tests a static file creation"""
-    path = os.path.join(os.path.abspath('.'), 'dynamic_sitemap', 'tmp', 'static.xml')
+    path = os.path.join(EXTENSION_ROOT, 'tmp', 'static.xml')
     flask_map.add_rule('/app', Model, lastmod='created')
     flask_map.config.IGNORED = ['/ign']
     flask_map.build_static(path)

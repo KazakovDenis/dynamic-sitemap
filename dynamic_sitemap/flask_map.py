@@ -53,7 +53,7 @@ class FlaskSitemap(SitemapMeta):
         super().__init__(app, base_url, config_obj, orm)
         assert self.app.extensions.get(orm), f'{orm} extension is not found'
 
-        default_template_folder = os.path.join(self.app.root_path, self.app.template_folder)
+        default_template_folder = join(self.app.root_path, self.app.template_folder)
         self.template_folder = self.config.TEMPLATE_FOLDER or default_template_folder
         self._copy_template(self.template_folder)
         self.log.info(f'Sitemap has been initialized')

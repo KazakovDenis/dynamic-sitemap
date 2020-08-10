@@ -1,11 +1,10 @@
-import os
 import pytest
 
 from .. import FlaskSitemap, SitemapConfig
 from .mocks import *
 
 
-template_folder = os.path.join(os.path.abspath('.'), 'dynamic_sitemap', 'tmp')
+template_folder = os.path.join(EXTENSION_ROOT, 'tmp')
 template = template_folder + '/sitemap.xml'
 
 
@@ -14,6 +13,7 @@ def config():
     """Creates an instance of a basis sitemap object"""
     config = SitemapConfig()
     config.LOGGER = getLogger('sitemap')
+    config.TEMPLATE_FOLDER = template_folder
     return config
 
 
