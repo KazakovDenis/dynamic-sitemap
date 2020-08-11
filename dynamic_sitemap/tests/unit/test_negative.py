@@ -9,12 +9,24 @@ def test_config_from_obj(config, obj):
         config.from_object(obj)
 
 
+def test_config_set(default_map):
+    """Tests impossibility of another config object setting"""
+    another = SitemapConfig()
+    with pytest.raises(PermissionError):
+        default_map.config = another
+
+
 # Base object tests
-@pytest.mark.parametrize('priority', [5, -1, '0.5', 'high'])
-def test_priority_01(flask_map, priority):
+@pytest.mark.parametrize('priority,error', [
+    (5, AssertionError),
+    (-1, AssertionError),
+    ('0.5', TypeError),
+    ('high', TypeError)
+])
+def test_priority_01(flask_map, priority, error):
     """Assertion error should be raised when priority is not in range 0.0-1.0.
     TypeError should be raised when got non-numeric."""
-    with pytest.raises((AssertionError, TypeError)):
+    with pytest.raises(error):
         flask_map.add_rule('/app', Model, priority=priority)
 
 

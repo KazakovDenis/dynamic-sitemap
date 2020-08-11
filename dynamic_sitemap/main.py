@@ -77,7 +77,7 @@ class SitemapConfig:
     LOGGER = None
 
     def from_object(self, obj: (type, 'SitemapConfig')):
-        """Updates the values from the given object
+        """Updates values from the given object
 
         :param obj: a class with the same attributes as this one or it's instance
         """
@@ -88,7 +88,10 @@ class SitemapConfig:
         else:
             raise NotImplementedError('This type of object is not supported yet')
 
-        return self
+    def __set__(self, instance, value):
+        raise PermissionError(
+            'You could not change configuration this way. Use "from_object" method or set specific attribute'
+        )
 
     def __setitem__(self, key, value):
         setattr(self, key, value)
@@ -116,6 +119,8 @@ class SitemapMeta(metaclass=ABCMeta):
         'sqlalchemy': 'model.query.all()',
     }
 
+    config = SitemapConfig()
+
     @abstractmethod
     def __init__(self, app, base_url: str, config_obj=None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
@@ -125,7 +130,7 @@ class SitemapMeta(metaclass=ABCMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project
         """
-        self.config = SitemapConfig().from_object(config_obj)
+        self.config.from_object(config_obj)
         self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         self.app = app
         self.url = base_url

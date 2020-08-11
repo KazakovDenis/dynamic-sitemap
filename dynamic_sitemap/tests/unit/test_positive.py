@@ -4,12 +4,15 @@ now = datetime.now().strftime('%Y-%m-%dT%H')
 
 
 # Config tests
-def test_config_from_obj(config):
+@pytest.mark.parametrize('obj', [
+    SitemapConfig(),
+    type('Config', tuple(), {}),
+])
+def test_config_from_obj(config, obj):
     """Tests configuration's setters and getters"""
-    class Conf:
-        TEST = True
-        ALTER_PRIORITY = 0.4
-    config.from_object(Conf)
+    obj.TEST = True
+    obj.ALTER_PRIORITY = 0.4
+    config.from_object(obj)
     assert hasattr(config, 'TEST')
     assert config['ALTER_PRIORITY']
 
