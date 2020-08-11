@@ -62,7 +62,7 @@ class FlaskSitemap(SitemapMeta):
         """Returns logger"""
         logger = self.config.LOGGER or self.app.logger.getChild('sitemap')
         if self.config.DEBUG:
-            self.set_debug_level(logger)
+            set_debug_level(logger)
         return logger
 
     def get_rules(self) -> iter:

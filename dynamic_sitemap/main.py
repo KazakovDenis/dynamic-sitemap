@@ -47,6 +47,8 @@ from shutil import copyfile
 from typing import TypeVar
 from xml.etree import ElementTree as ET
 
+from .helpers import set_debug_level
+
 
 EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
 Record = namedtuple('Record', 'loc lastmod priority')
@@ -195,7 +197,7 @@ class SitemapMeta(metaclass=ABCMeta):
         """Returns an instance of logging.Logger (set in config)"""
         logger = self.config.LOGGER
         if self.config.DEBUG and logger:
-            self.set_debug_level(logger)
+            set_debug_level(logger)
         return logger
 
     def get_dynamic_rules(self) -> list:
