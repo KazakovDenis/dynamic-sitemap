@@ -67,6 +67,12 @@ class DefaultSitemap(SitemapMeta):
     def __init__(self, app, base_url: str, config_obj=None):
         super().__init__(app, base_url, config_obj)
 
+    def get_rules(self):
+        return iter([])
+
+    def view(self):
+        return 'response'
+
 
 record = Mock('slug', 'updated', 'priority')
 rule = Mock(methods=['GET'], rule='/url')

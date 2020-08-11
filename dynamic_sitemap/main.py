@@ -52,7 +52,7 @@ from .helpers import set_debug_level
 
 EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
 Record = namedtuple('Record', 'loc lastmod priority')
-Response = TypeVar('Response')
+HTTPResponse = TypeVar('HTTPResponse')
 
 
 class SitemapConfig:
@@ -123,7 +123,6 @@ class SitemapMeta(metaclass=ABCMeta):
 
     config = SitemapConfig()
 
-    @abstractmethod
     def __init__(self, app, base_url: str, config_obj=None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
 
@@ -132,7 +131,9 @@ class SitemapMeta(metaclass=ABCMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project
         """
-        self.config.from_object(config_obj)
+        if config_obj:
+            self.config.from_object(config_obj)
+
         self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         self.app = app
         self.url = base_url
@@ -205,23 +206,14 @@ class SitemapMeta(metaclass=ABCMeta):
         self.rules, all_rules = tee(self.rules)
         return [i for i in all_rules if search(r'<[\w:]+>', i)]
 
+    @abstractmethod
     def get_rules(self) -> iter:
         """The method to override. Should return an iterator of URL rules"""
-        return iter([])
+        pass
 
-    @staticmethod
-    def set_debug_level(logger):
-        """Sets up logger and its handlers levels to Debug
-        :param logger: an instance of logging.Logger
-        """
-        logger.setLevel(10)
-        for handler in logger.handlers:
-            handler.setLevel(10)
-
-    def view(self) -> Response:
-        """The method to override.
-        :returns http response
-        """
+    @abstractmethod
+    def view(self) -> HTTPResponse:
+        """The method to override. Should return HTTP response"""
         pass
 
     def _copy_template(self, folder: [str, list, tuple]):
