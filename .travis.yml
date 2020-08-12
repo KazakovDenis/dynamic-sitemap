@@ -5,7 +5,7 @@ python:
   - "3.8"
 
 install:
-  - pip install -r test_requirements.txt
+  - pip install -r requirements/test_base.txt
 
 script:
   - python -m pytest -v
