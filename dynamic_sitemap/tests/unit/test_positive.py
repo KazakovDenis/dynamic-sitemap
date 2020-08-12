@@ -74,10 +74,11 @@ def test_default_copy_template(default_map, request):
     assert os.path.exists(new_dir)
 
 
-def test_default_exclude(default_map):
+@pytest.mark.parametrize('debug', [False, True])
+def test_default_exclude(default_map, debug):
     """Tests that ignored urls was excluded"""
+    default_map.config.DEBUG = debug
     default_map.config.IGNORED = ['/ign']
-    default_map.rules = ['/', '/url', '/ign']
     for url in default_map._exclude():
         assert 'ign' not in url
 
@@ -126,7 +127,7 @@ def test_flask_create_map(request, flask_map):
     flask_map.config.DEBUG = True
     flask_map.update()
     assert flask_map.query == 'model.query.all()'
-    assert tuple(flask_map.rules) == DEFAULT_RULES
+    assert tuple(flask_map.rules) == DEFAULT_URLS
 
 
 def test_flask_build_static(flask_map):

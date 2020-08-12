@@ -63,7 +63,9 @@ class Mock:
         return instance
 
 
-DEFAULT_RULES = '/', '/url', '/ign/<slug>', '/api/<int:page>', '/blog/<str:title>'
+STATIC_URLS = '/', '/url', '/ign'
+DYNAMIC_URLS = '/ign/<slug>', '/api/<int:page>', '/blog/<str:title>'
+DEFAULT_URLS = STATIC_URLS + DYNAMIC_URLS
 
 
 class DefaultSitemap(SitemapMeta):
@@ -71,7 +73,8 @@ class DefaultSitemap(SitemapMeta):
         super().__init__(app, base_url, config_obj)
 
     def get_rules(self):
-        return iter(['/', '/url'])
+        # todo: change to DEFAULT and make tests
+        return iter(STATIC_URLS)
 
     def view(self):
         return 'response'
@@ -89,7 +92,7 @@ class Model:
 
 class FlaskApp:
     extensions = {'sqlalchemy': True, 'peewee': True}
-    url_map = Mock(iter_rules=lambda: [rule(rule=i) for i in DEFAULT_RULES])
+    url_map = Mock(iter_rules=lambda: [rule(rule=i) for i in DEFAULT_URLS])
     logger = getLogger('Flask')
     root_path = os.path.abspath(os.curdir)
     template_folder = os.path.join(EXTENSION_ROOT, 'tmp')
