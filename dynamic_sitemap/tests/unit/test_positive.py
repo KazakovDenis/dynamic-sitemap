@@ -132,7 +132,7 @@ def test_flask_create_map(request, flask_map):
 def test_flask_build_static(flask_map):
     """Tests a static file creation"""
     path = os.path.join(TEMPLATE_FOLDER, 'static.xml')
-    flask_map.add_rule('/app', Model, lastmod='created')
-    flask_map.config.IGNORED = ['/ign']
+    flask_map.add_rule('/api', Model, lastmod='created')
+    flask_map.config.IGNORED = ['/ign', '/blog']
     flask_map.build_static(path)
     assert os.path.exists(path)
