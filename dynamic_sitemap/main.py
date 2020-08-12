@@ -14,6 +14,7 @@ Basic example:
     sitemap = FlaskSitemap(app, 'https://mysite.com')
     sitemap.config.IGNORED.extend(['/edit', '/upload'])
     sitemap.config.TEMPLATE_FOLDER = ['app', 'templates']
+    sitemap.update()
     sitemap.add_rule('/app', Post, lastmod='created')
     sitemap.add_rule('/app/tag', Tag, priority=0.4)
     app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
@@ -72,7 +73,7 @@ class SitemapConfig:
     """
 
     DEBUG = False
-    TEMPLATE_FILE = join(EXTENSION_ROOT, 'templates', 'jinja2.xml')
+    SOURCE_FILE = join(EXTENSION_ROOT, 'templates', 'jinja2.xml')
     STATIC_FOLDER = TEMPLATE_FOLDER = None
     IGNORED = ['/admin', '/static', ]
     INDEX_PRIORITY = CONTENT_PRIORITY = ALTER_PRIORITY = None
@@ -131,19 +132,19 @@ class SitemapMeta(metaclass=ABCMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project
         """
-        if config_obj:
-            self.config.from_object(config_obj)
 
-        self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         self.app = app
         self.url = base_url
-        self.log = self.get_logger()
-        self.rules = self.get_rules()
+        self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         self.query = self.queries[orm.casefold()]    # a query to get all objects of a model
+        self.rules = None
+        self.log = None
 
         # containers
         self.data = []                               # to store Record instances
         self.models = {}                             # to store db objects added by add_rule
+
+        self.update(config_obj)
 
     def add_rule(self, path: str, model, slug='slug', lastmod: str = None, priority: float = None):
         """Adds a rule to the builder to generate urls by a template using models of an app
@@ -194,6 +195,15 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.log.info('Static sitemap is ready')
 
+    def update(self, config_obj=None):
+        """Updates its config and rules"""
+        if config_obj:
+            self.config.from_object(config_obj)
+
+        self.log = self.get_logger()
+        self.rules = self.get_rules()
+        self._copy_template()
+
     def get_logger(self):
         """Returns an instance of logging.Logger (set in config)"""
         logger = self.config.LOGGER
@@ -216,28 +226,28 @@ class SitemapMeta(metaclass=ABCMeta):
         """The method to override. Should return HTTP response"""
         pass
 
-    def _copy_template(self, folder: [str, list, tuple]):
+    def _copy_template(self):
         """Copies an xml file with Jinja2 template to an app templates directory
 
-        :param folder: a template folder or a path to
         :raises:
             PermissionError: if unable to copy a template to destination
             FileExistsError: if another sitemap already exists
         """
         root = abspath(self.app.__module__).rsplit('/', 1)[0]
-        folder = folder if isinstance(folder, str) else join(*folder)
-        filename = join(root, folder, 'sitemap.xml')
+        folder = self.config.TEMPLATE_FOLDER
+        path = folder if isinstance(folder, str) else join(*folder)
+        filename = join(root, path, 'sitemap.xml')
 
         if not exists(filename):
             try:
-                copyfile(self.config.TEMPLATE_FILE, filename)
+                copyfile(self.config.SOURCE_FILE, filename)
                 self.log.info(f'The template has been created: {filename}')
             except FileNotFoundError as e:
                 error = 'Unable to place file at this path: ' + filename
                 self.log.error(error)
                 raise PermissionError(error) from e
         else:
-            if not cmp(filename, self.config.TEMPLATE_FILE, shallow=False):
+            if not cmp(self.config.SOURCE_FILE, filename, shallow=False):
                 msg = 'It seems another sitemap already exists. Delete it and retry: ' + filename
                 self.log.error(msg)
                 raise FileExistsError(msg)

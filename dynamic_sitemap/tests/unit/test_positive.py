@@ -1,4 +1,5 @@
-from ..conf import *
+from ..conftest import *
+
 
 now = datetime.now().strftime('%Y-%m-%dT%H')
 
@@ -8,8 +9,13 @@ now = datetime.now().strftime('%Y-%m-%dT%H')
     SitemapConfig(),
     type('Config', tuple(), {}),
 ])
-def test_config_from_obj(config, obj):
+def test_config_from_obj(request, config, obj):
     """Tests configuration's setters and getters"""
+    def teardown():
+        config.ALTER_PRIORITY = None
+        del config.TEST
+    request.addfinalizer(teardown)
+
     obj.TEST = True
     obj.ALTER_PRIORITY = 0.4
     config.from_object(obj)
@@ -54,13 +60,18 @@ def test_default_get_logger(default_map, request):
 
 def test_default_copy_template(default_map, request):
     """Tests a static file copying to source folder"""
+    new_dir = os.path.join(TEMPLATE_FOLDER, 'new_dir')
+
     def teardown():
-        default_map.config.DEBUG = False
+        from shutil import rmtree
+        rmtree(new_dir)
+        default_map.config.TEMPLATE_FOLDER = TEMPLATE_FOLDER
     request.addfinalizer(teardown)
 
-    default_map.config.DEBUG = True
-    default_map._copy_template(TEMPLATE_FOLDER)
-    assert os.path.exists(TEMPLATE_FILE)
+    os.makedirs(new_dir, exist_ok=True)
+    default_map.config.TEMPLATE_FOLDER = new_dir
+    default_map._copy_template()
+    assert os.path.exists(new_dir)
 
 
 def test_default_exclude(default_map):
@@ -74,7 +85,9 @@ def test_default_exclude(default_map):
 def test_default_prepare_data(default_map):
     """Tests preparing data by pattern"""
     assert not default_map.data
+    default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
+    default_map.update()
     default_map._prepare_data()
     assert default_map.data[-1].loc
     assert default_map.data[-1].lastmod

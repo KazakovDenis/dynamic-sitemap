@@ -11,6 +11,7 @@ Basic example:
     sitemap = FlaskSitemap(app, 'https://mysite.com')
     sitemap.config.IGNORED.extend(['/edit', '/upload'])
     sitemap.config.STATIC_FOLDER = ('..', 'static',)
+    sitemap.update()
     sitemap.add_rule('/app', Post, lastmod='created')
     sitemap.add_rule('/app/tag', Tag, priority=0.4)
     app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
@@ -50,20 +51,10 @@ class FlaskSitemap(SitemapMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project
         """
+        self.config.LOGGER = app.logger.getChild('sitemap')
+        self.config.TEMPLATE_FOLDER = join(app.root_path, app.template_folder)
+        assert app.extensions.get(orm), f'{orm} extension is not found'
         super().__init__(app, base_url, config_obj, orm)
-        assert self.app.extensions.get(orm), f'{orm} extension is not found'
-
-        default_template_folder = join(self.app.root_path, self.app.template_folder)
-        self.template_folder = self.config.TEMPLATE_FOLDER or default_template_folder
-        self._copy_template(self.template_folder)
-        self.log.info(f'Sitemap has been initialized')
-
-    def get_logger(self):
-        """Returns logger"""
-        logger = self.config.LOGGER or self.app.logger.getChild('sitemap')
-        if self.config.DEBUG:
-            set_debug_level(logger)
-        return logger
 
     def get_rules(self) -> iter:
         """Returns an iterator of URL rules"""

@@ -1,4 +1,4 @@
-from ..conf import *
+from ..conftest import *
 
 
 # Config tests
@@ -30,16 +30,25 @@ def test_priority_01(flask_map, priority, error):
         flask_map.add_rule('/app', Model, priority=priority)
 
 
-@pytest.mark.parametrize('folder,error,create', [
-        (TEMPLATE_FOLDER, FileExistsError, True),
-        ('no_such_dir', PermissionError, False),
-    ]
-)
-def test_default_copy_exceptions(default_map, folder, error, create):
+def test_default_copy_file_exists(request, default_map):
     """Tests exception which should be raised when sitemap.xml already exists"""
-    if create:
-        with open(TEMPLATE_FILE, 'w') as f:
-            f.write('Another sitemap file')
+    def teardown():
+        os.remove(TEMPLATE_FILE)
+    request.addfinalizer(teardown)
+    
+    with open(TEMPLATE_FILE, 'w') as f:
+        f.write('Another sitemap file')
 
-    with pytest.raises(error):
-        default_map._copy_template(folder)
+    with pytest.raises(FileExistsError):
+        default_map._copy_template()
+
+
+def test_default_copy_permission(request, default_map):
+    """Tests exception which should be raised when putting into not existing directory"""
+    def teardown():
+        default_map.config.TEMPLATE_FOLDER = TEMPLATE_FOLDER
+    request.addfinalizer(teardown)
+
+    default_map.config.TEMPLATE_FOLDER = 'no_such_dir'
+    with pytest.raises(PermissionError):
+        default_map._copy_template()

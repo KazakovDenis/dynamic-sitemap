@@ -10,6 +10,7 @@ TRUE_INSTANCES = 1, 1.0, 1+1j, (1,), [1], {1}, {1: 1}, 'str', b'bytes', bytearra
 
 TEMPLATE_FOLDER = os.path.join(EXTENSION_ROOT, 'tests', 'tmp')
 TEMPLATE_FILE = os.path.join(TEMPLATE_FOLDER, 'sitemap.xml')
+os.makedirs(TEMPLATE_FOLDER, exist_ok=True)
 TEST_URL = 'http://site.com'
 
 
