@@ -1,0 +1,2 @@
+-r ./test_base.txt
+flask>=1.1.2

@@ -57,8 +57,13 @@ sitemap.build_static()
 ## Testing  
 Install dependencies before
 ```shell script
-pip install -r test_requirements.txt
+pip install -r requirements/test_all.txt
 ```
+or
+```shell script
+pip install -r requirements/test_base.txt
+```
+to install with no frameworks.
 
 ### Unit testing
 Execute the command below to run unit tests

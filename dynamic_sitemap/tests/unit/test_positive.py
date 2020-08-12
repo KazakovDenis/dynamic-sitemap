@@ -41,7 +41,7 @@ def test_default_add_rule(default_map, priority):
     assert isinstance(model[3], (float, int))
 
 
-def test_get_dynamic_rules(default_map):
+def test_default_get_dynamic_rules(default_map):
     """Tests that the method returns only dynamic rules"""
     for url in default_map.get_dynamic_rules():
         assert '<' in url
