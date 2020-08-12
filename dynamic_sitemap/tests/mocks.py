@@ -66,6 +66,7 @@ class Mock:
 STATIC_URLS = '/', '/url', '/ign'
 DYNAMIC_URLS = '/ign/<slug>', '/api/<int:page>', '/blog/<str:title>'
 DEFAULT_URLS = STATIC_URLS + DYNAMIC_URLS
+TIME = datetime.now()
 
 
 class DefaultSitemap(SitemapMeta):
@@ -85,9 +86,19 @@ rule = Mock(methods=['GET'], rule='/url')
 
 
 class Model:
-    query = Mock(all=lambda: [record(slug='first-slug'), record(slug='second-slug')])
-    objects = Mock(all=lambda: [record(slug='first-slug'), record(slug='second-slug')])
-    updated = datetime.now()
+
+    # for SQLAlchemy, DjangoORM
+    query = objects = Mock(
+        all=lambda: [
+            record(slug='first-slug', updated=TIME),
+            record(slug='second-slug', updated=TIME)
+        ]
+    )
+
+    # for Peewee
+    @classmethod
+    def select(cls):
+        return getattr(cls.query, 'all')()
 
 
 class FlaskApp:

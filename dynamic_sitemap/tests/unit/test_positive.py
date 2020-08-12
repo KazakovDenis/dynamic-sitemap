@@ -1,9 +1,6 @@
 from ..conftest import *
 
 
-now = datetime.now().strftime('%Y-%m-%dT%H')
-
-
 # Config tests
 @pytest.mark.parametrize('obj', [
     SitemapConfig(),
@@ -26,8 +23,9 @@ def test_config_from_obj(request, config, obj):
 # Base object tests
 def test_default_create_map(default_map, config):
     """Tests an instance creation"""
+    time = TIME.strftime('%Y-%m-%dT%H')
     assert isinstance(default_map.start, str)
-    assert now in default_map.start
+    assert time in default_map.start
 
 
 @pytest.mark.parametrize('priority', [0.5, 0.733, 1])
@@ -98,42 +96,19 @@ def test_default_prepare_data(default_map):
 @pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x'])
 @pytest.mark.parametrize('suffix', ['', '/', '/suffix'])
 def test_default_replace_patterns(default_map, prefix, suffix):
-    """Tests preparing data from dynamic rules by pattern """
-    uri = '/<slug>'
-    default_map.rules = ['/', '/url', '/ign', uri]
-    default_map.add_rule(prefix, Model)
+    """Tests Record item data"""
+    uri = prefix + '/<slug>'
     slug = '/' + Model.query.all()[0].slug
-    record = default_map._replace_patterns(uri, [prefix, suffix])[0]
-    assert record.loc == f'{default_map.url}{prefix}{slug}{suffix}'
-    assert hasattr(record, 'lastmod')
-    assert hasattr(record, 'priority')
+
+    default_map.add_rule(prefix, Model, lastmod='updated', priority=0.7)
+    rec = default_map._replace_patterns(uri, [prefix, suffix])[0]
+    assert rec.loc == f'{default_map.url}{prefix}{slug}{suffix}'
+    assert rec.lastmod == TIME.strftime('%Y-%m-%dT%H:%M:%S')
+    assert rec.priority == 0.7
 
 
 def test_default_build_static(default_map):
     """Tests a static file creation"""
     path = os.path.join(TEMPLATE_FOLDER, 'static.xml')
     default_map.build_static(path)
-    assert os.path.exists(path)
-
-
-# FlaskSitemap tests
-def test_flask_create_map(request, flask_map):
-    """Tests an instance creation"""
-    def teardown():
-        flask_map.config.DEBUG = False
-        flask_map.update()
-    request.addfinalizer(teardown)
-
-    flask_map.config.DEBUG = True
-    flask_map.update()
-    assert flask_map.query == 'model.query.all()'
-    assert tuple(flask_map.rules) == DEFAULT_URLS
-
-
-def test_flask_build_static(flask_map):
-    """Tests a static file creation"""
-    path = os.path.join(TEMPLATE_FOLDER, 'static.xml')
-    flask_map.add_rule('/api', Model, lastmod='created')
-    flask_map.config.IGNORED = ['/ign', '/blog']
-    flask_map.build_static(path)
     assert os.path.exists(path)

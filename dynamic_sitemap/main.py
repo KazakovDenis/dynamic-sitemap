@@ -153,14 +153,14 @@ class SitemapMeta(metaclass=ABCMeta):
         :param path: a part of URI is used to get a page generated through a model
         :param model: a model of an app that has a slug, e.g. an instance of SQLAlchemy.Model
         :param slug: a slug attribute of this model
-        :param lastmod: an attribute of this model which is instance of the datetime object
+        :param lastmod: an attribute of this model which is an instance of the datetime object
         :param priority: a priority of URL to be set
         """
         if priority:
             priority = round(priority or self.config.CONTENT_PRIORITY, 1)
             assert 0.0 < priority <= 1.0, 'Priority should be a float between 0.0 and 1.0'
 
-        self.models.update({path: (model, slug, lastmod, priority)})
+        self.models[path] = model, slug, lastmod, priority
 
     def build_static(self, filename='sitemap.xml'):
         """Builds an XML file. The system user of the app should have rights to write files
