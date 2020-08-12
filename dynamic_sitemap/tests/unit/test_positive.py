@@ -108,10 +108,25 @@ def test_default_replace_patterns(default_map, prefix, suffix):
     assert hasattr(record, 'priority')
 
 
+def test_default_build_static(default_map):
+    """Tests a static file creation"""
+    path = os.path.join(TEMPLATE_FOLDER, 'static.xml')
+    default_map.build_static(path)
+    assert os.path.exists(path)
+
+
 # FlaskSitemap tests
-def test_flask_create_map(flask_map):
+def test_flask_create_map(request, flask_map):
     """Tests an instance creation"""
+    def teardown():
+        flask_map.config.DEBUG = False
+        flask_map.update()
+    request.addfinalizer(teardown)
+
+    flask_map.config.DEBUG = True
+    flask_map.update()
     assert flask_map.query == 'model.query.all()'
+    assert tuple(flask_map.rules) == DEFAULT_RULES
 
 
 def test_flask_build_static(flask_map):

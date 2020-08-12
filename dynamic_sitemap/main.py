@@ -56,6 +56,19 @@ EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
 Record = namedtuple('Record', 'loc lastmod priority')
 HTTPResponse = TypeVar('HTTPResponse')
 
+QUERIES = {
+    'django': 'model.objects.all()',
+    'peewee': 'model.select()',
+    'sqlalchemy': 'model.query.all()',
+}
+
+XML_ATTRS = {
+    'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
+    'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+    'xsi:schemaLocation':
+        'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd'
+}
+
 
 class SitemapConfig:
     """A class to set configurations
@@ -110,19 +123,6 @@ class SitemapConfig:
 class SitemapMeta(metaclass=ABCMeta):
     """The base class to inherit"""
 
-    attrs = {
-        'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
-        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-        'xsi:schemaLocation':
-            'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd'
-    }
-
-    queries = {
-        'django': 'model.objects.all()',
-        'peewee': 'model.select()',
-        'sqlalchemy': 'model.query.all()',
-    }
-
     config = SitemapConfig()
 
     def __init__(self, app, base_url: str, config_obj=None, orm: str = 'sqlalchemy'):
@@ -137,7 +137,7 @@ class SitemapMeta(metaclass=ABCMeta):
         self.app = app
         self.url = base_url
         self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        self.query = self.queries[orm.casefold()]    # a query to get all objects of a model
+        self.query = QUERIES[orm.casefold()]    # a query to get all objects of a model
         self.rules = None
         self.log = None
 
@@ -173,7 +173,7 @@ class SitemapMeta(metaclass=ABCMeta):
         fullname = filename if not isinstance(folder, str) else join(*folder, filename)
         self.log.info(f'Creating {fullname}...')
 
-        url_set = ET.Element('urlset', self.attrs)
+        url_set = ET.Element('urlset', XML_ATTRS)
         sub = ET.SubElement
 
         for record in self.data:
