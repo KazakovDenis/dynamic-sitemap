@@ -42,6 +42,7 @@ from collections import namedtuple
 from datetime import datetime
 from filecmp import cmp
 from itertools import tee
+from logging import getLogger
 from os.path import abspath, join, exists
 from re import search, split
 from shutil import copyfile
@@ -206,7 +207,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
     def get_logger(self):
         """Returns an instance of logging.Logger (set in config)"""
-        logger = self.config.LOGGER
+        logger = self.config.LOGGER if self.config.LOGGER else getLogger('sitemap')
         if self.config.DEBUG and logger:
             set_debug_level(logger)
         return logger

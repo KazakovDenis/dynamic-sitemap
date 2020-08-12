@@ -18,7 +18,6 @@ TEST_URL = 'http://site.com'
 def config():
     """Creates an instance of a basis sitemap object"""
     config = SitemapConfig()
-    config.LOGGER = getLogger('sitemap')
     config.TEMPLATE_FOLDER = TEMPLATE_FOLDER
     return config
 
