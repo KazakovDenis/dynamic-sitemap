@@ -5,7 +5,7 @@ python:
   - "3.8"
 
 install:
-  - pip install -r requirements/test_base.txt
+  - pip install -r requirements/test_all.txt
 
 script:
-  - python -m pytest -v
+  - python -m pytest dynamic_sitemap/tests

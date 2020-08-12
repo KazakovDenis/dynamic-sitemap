@@ -1,5 +1,4 @@
 from datetime import datetime
-from logging import getLogger
 import os
 
 import pytest

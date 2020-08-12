@@ -69,5 +69,5 @@ class FlaskSitemap(SitemapMeta):
         template = render_template('sitemap.xml', data=self.data)
         response = make_response(template)
         response.headers['Content-Type'] = 'application/xml'
-        self.log.info(f'[{request.method}] Requested by {request.remote_addr}')
+        self.log.info(f'[{request.method}] Sitemap requested by {request.remote_addr}')
         return response

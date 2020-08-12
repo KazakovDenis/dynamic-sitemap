@@ -10,13 +10,7 @@ try:
     db = SQLAlchemy(FlaskApp)
 
 except ImportError:
-
-    class FlaskApp:
-        extensions = {'sqlalchemy': True, 'peewee': True}
-        url_map = Mock(iter_rules=lambda: [rule(rule=i) for i in DEFAULT_URLS])
-        logger = getLogger('Flask')
-        root_path = os.path.abspath(os.curdir)
-        template_folder = TEST_FOLDER
+    pytestmark = pytest.mark.not_installed
 
 
 @pytest.fixture(autouse=True, scope='session')
@@ -52,7 +46,7 @@ def test_flask_build_static(flask_map):
 
 
 def test_flask_view(flask_client):
-    """Tests a static file creation"""
+    """Tests http response"""
     with flask_client() as client:
         response = client.get('/sitemap.xml')
 
