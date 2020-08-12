@@ -17,7 +17,6 @@ Basic example:
     sitemap.update()
     sitemap.add_rule('/app', Post, lastmod='created')
     sitemap.add_rule('/app/tag', Tag, priority=0.4)
-    app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
 
 IGNORED has a priority over add_rule. Also you can set configurations from your class:
 
@@ -32,7 +31,6 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
 
     sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
     sitemap.add_rule('/goods', Product, slug='id', lastmod='updated')
-    app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
 
 Moreover you can get a static file by using:
     sitemap.build_static()

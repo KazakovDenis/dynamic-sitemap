@@ -23,7 +23,7 @@ def test_config_from_obj(request, config, obj):
 # Base object tests
 def test_default_create_map(default_map, config):
     """Tests an instance creation"""
-    time = TIME.strftime('%Y-%m-%dT%H')
+    time = TEST_TIME.strftime('%Y-%m-%dT%H')
     assert isinstance(default_map.start, str)
     assert time in default_map.start
 
@@ -58,12 +58,12 @@ def test_default_get_logger(default_map, request):
 
 def test_default_copy_template(default_map, request):
     """Tests a static file copying to source folder"""
-    new_dir = os.path.join(TEMPLATE_FOLDER, 'new_dir')
+    new_dir = os.path.join(TEST_FOLDER, 'new_dir')
 
     def teardown():
         from shutil import rmtree
         rmtree(new_dir)
-        default_map.config.TEMPLATE_FOLDER = TEMPLATE_FOLDER
+        default_map.config.TEMPLATE_FOLDER = TEST_FOLDER
     request.addfinalizer(teardown)
 
     os.makedirs(new_dir, exist_ok=True)
@@ -103,12 +103,12 @@ def test_default_replace_patterns(default_map, prefix, suffix):
     default_map.add_rule(prefix, Model, lastmod='updated', priority=0.7)
     rec = default_map._replace_patterns(uri, [prefix, suffix])[0]
     assert rec.loc == f'{default_map.url}{prefix}{slug}{suffix}'
-    assert rec.lastmod == TIME.strftime('%Y-%m-%dT%H:%M:%S')
+    assert rec.lastmod == TEST_TIME.strftime('%Y-%m-%dT%H:%M:%S')
     assert rec.priority == 0.7
 
 
 def test_default_build_static(default_map):
     """Tests a static file creation"""
-    path = os.path.join(TEMPLATE_FOLDER, 'static.xml')
+    path = os.path.join(TEST_FOLDER, 'static.xml')
     default_map.build_static(path)
     assert os.path.exists(path)

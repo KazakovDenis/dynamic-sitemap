@@ -23,20 +23,20 @@ def test_config_set(default_map):
     ('0.5', TypeError),
     ('high', TypeError)
 ])
-def test_priority_01(flask_map, priority, error):
+def test_priority(default_map, priority, error):
     """Assertion error should be raised when priority is not in range 0.0-1.0.
     TypeError should be raised when got non-numeric."""
     with pytest.raises(error):
-        flask_map.add_rule('/app', Model, priority=priority)
+        default_map.add_rule('/app', Model, priority=priority)
 
 
 def test_default_copy_file_exists(request, default_map):
     """Tests exception which should be raised when sitemap.xml already exists"""
     def teardown():
-        os.remove(TEMPLATE_FILE)
+        os.remove(TEST_FILE)
     request.addfinalizer(teardown)
     
-    with open(TEMPLATE_FILE, 'w') as f:
+    with open(TEST_FILE, 'w') as f:
         f.write('Another sitemap file')
 
     with pytest.raises(FileExistsError):
@@ -46,7 +46,7 @@ def test_default_copy_file_exists(request, default_map):
 def test_default_copy_permission(request, default_map):
     """Tests exception which should be raised when putting into not existing directory"""
     def teardown():
-        default_map.config.TEMPLATE_FOLDER = TEMPLATE_FOLDER
+        default_map.config.TEMPLATE_FOLDER = TEST_FOLDER
     request.addfinalizer(teardown)
 
     default_map.config.TEMPLATE_FOLDER = 'no_such_dir'

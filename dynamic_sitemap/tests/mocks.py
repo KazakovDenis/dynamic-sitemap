@@ -1,9 +1,4 @@
 from copy import copy
-from datetime import datetime
-from logging import getLogger
-import os
-
-from .. import EXTENSION_ROOT, SitemapMeta
 
 
 class FuncMock:
@@ -61,49 +56,3 @@ class Mock:
         for key, value in kwargs.items():
             setattr(instance, key, value)
         return instance
-
-
-STATIC_URLS = '/', '/url', '/ign'
-DYNAMIC_URLS = '/ign/<slug>', '/api/<int:page>', '/blog/<str:title>'
-DEFAULT_URLS = STATIC_URLS + DYNAMIC_URLS
-TIME = datetime.now()
-
-
-class DefaultSitemap(SitemapMeta):
-    def __init__(self, app, base_url: str, config_obj=None):
-        super().__init__(app, base_url, config_obj)
-
-    def get_rules(self):
-        # todo: change to DEFAULT and make tests
-        return iter(STATIC_URLS)
-
-    def view(self):
-        return 'response'
-
-
-record = Mock('slug', 'updated', 'priority')
-rule = Mock(methods=['GET'], rule='/url')
-
-
-class Model:
-
-    # for SQLAlchemy, DjangoORM
-    query = objects = Mock(
-        all=lambda: [
-            record(slug='first-slug', updated=TIME),
-            record(slug='second-slug', updated=TIME)
-        ]
-    )
-
-    # for Peewee
-    @classmethod
-    def select(cls):
-        return getattr(cls.query, 'all')()
-
-
-class FlaskApp:
-    extensions = {'sqlalchemy': True, 'peewee': True}
-    url_map = Mock(iter_rules=lambda: [rule(rule=i) for i in DEFAULT_URLS])
-    logger = getLogger('Flask')
-    root_path = os.path.abspath(os.curdir)
-    template_folder = os.path.join(EXTENSION_ROOT, 'tmp')

@@ -14,7 +14,6 @@ Basic example:
     sitemap.update()
     sitemap.add_rule('/app', Post, lastmod='created')
     sitemap.add_rule('/app/tag', Tag, priority=0.4)
-    app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
 
 IGNORED has a priority over add_rule. Also you can set configurations from your class:
 
@@ -29,7 +28,6 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
 
     sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
     sitemap.add_rule('/goods', Product, slug='id', lastmod='updated')
-    app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
 
 Moreover you can get a static file by using:
     sitemap.build_static()
@@ -51,10 +49,11 @@ class FlaskSitemap(SitemapMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project
         """
+        assert app.extensions.get(orm), f'{orm} extension is not found'
         self.config.LOGGER = app.logger.getChild('sitemap')
         self.config.TEMPLATE_FOLDER = join(app.root_path, app.template_folder)
-        assert app.extensions.get(orm), f'{orm} extension is not found'
         super().__init__(app, base_url, config_obj, orm)
+        app.add_url_rule('/sitemap.xml', endpoint='sitemap_ext', view_func=self.view)
 
     def get_rules(self) -> iter:
         """Returns an iterator of URL rules"""
