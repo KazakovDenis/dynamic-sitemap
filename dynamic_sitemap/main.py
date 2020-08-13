@@ -122,8 +122,9 @@ class SitemapMeta(metaclass=ABCMeta):
     """The base class to inherit"""
 
     config = SitemapConfig()
+    content_type = 'application/xml'
 
-    def __init__(self, app, base_url: str, config_obj=None, orm: str = 'sqlalchemy'):
+    def __init__(self, app, base_url: str, config_obj: (type, SitemapConfig) = None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
 
         :param app: an application instance
@@ -226,7 +227,7 @@ class SitemapMeta(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def view(self) -> HTTPResponse:
+    def view(self, *args, **kwargs) -> HTTPResponse:
         """The method to override. Should return HTTP response"""
         pass
 
@@ -327,4 +328,4 @@ class SitemapMeta(metaclass=ABCMeta):
         return prepared
 
     def __repr__(self):
-        return f'<Sitemap object of {self.url} based on {self.app} >'
+        return f'<Sitemap object of {self.url} based on {self.app}>'

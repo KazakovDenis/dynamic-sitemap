@@ -41,7 +41,7 @@ FlaskApp = TypeVar('FlaskApp')
 class FlaskSitemap(SitemapMeta):
     """A sitemap generator for a Flask application. For usage see the module documentation"""
 
-    def __init__(self, app: FlaskApp, base_url: str, config_obj=None, orm: str = 'sqlalchemy'):
+    def __init__(self, app: FlaskApp, base_url: str, config_obj: (type, SitemapConfig) = None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Flask application
@@ -68,6 +68,6 @@ class FlaskSitemap(SitemapMeta):
         self._prepare_data()
         template = render_template('sitemap.xml', data=self.data)
         response = make_response(template)
-        response.headers['Content-Type'] = 'application/xml'
+        response.headers['Content-Type'] = self.content_type
         self.log.info(f'[{request.method}] Sitemap requested by {request.remote_addr}')
         return response

@@ -30,7 +30,6 @@ sitemap.config.IGNORED.extend(['/edit', '/upload'])
 sitemap.config.TEMPLATE_FOLDER = ['app', 'templates']
 sitemap.add_rule('/app', Post, lastmod='created')
 sitemap.add_rule('/app/tag', Tag, priority=0.4)
-app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
 ```
 *IGNORED* has a priority over *add_rule*.  
   
@@ -47,7 +46,6 @@ class Config:
 
 sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
 sitemap.add_rule('/goods', Product, slug='id', lastmod='updated')
-app.add_url_rule('/sitemap.xml', endpoint='sitemap', view_func=sitemap.view)
 ```
 Moreover you can get a static file by using:
 ```python
