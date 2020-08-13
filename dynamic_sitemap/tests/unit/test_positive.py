@@ -32,11 +32,11 @@ def test_default_create_map(default_map, config):
 def test_default_add_rule(default_map, priority):
     """Tests a rule creation"""
     default_map.add_rule('/app', Model, priority=priority, lastmod='updated')
-    model = default_map.models['/app']
-    assert model[0] == Model
-    assert isinstance(model[1], str)
-    assert isinstance(model[2], str)
-    assert isinstance(model[3], (float, int))
+    obj = default_map.models['/app']
+    assert obj.model == Model
+    assert isinstance(obj.attrs['slug'], str)
+    assert isinstance(obj.attrs['lastmod'], str)
+    assert isinstance(obj.attrs['priority'], (float, int))
 
 
 def test_default_get_dynamic_rules(default_map):

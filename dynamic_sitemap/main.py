@@ -51,8 +51,9 @@ from .helpers import set_debug_level
 
 
 EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
-Record = namedtuple('Record', 'loc lastmod priority')
 HTTPResponse = TypeVar('HTTPResponse')
+Record = namedtuple('Record', 'loc lastmod priority')
+PathModel = namedtuple('PathModel', 'model attrs')
 
 QUERIES = {
     'django': 'model.objects.all()',
@@ -159,7 +160,7 @@ class SitemapMeta(metaclass=ABCMeta):
             priority = round(priority or self.config.CONTENT_PRIORITY, 1)
             assert 0.0 < priority <= 1.0, 'Priority should be a float between 0.0 and 1.0'
 
-        self.models[path] = model, slug, lastmod, priority
+        self.models[path] = PathModel(model=model, attrs={'slug': slug, 'lastmod':  lastmod, 'priority':  priority})
 
     def build_static(self, filename='sitemap.xml'):
         """Builds an XML file. The system user of the app should have rights to write files
@@ -305,24 +306,24 @@ class SitemapMeta(metaclass=ABCMeta):
         assert self.models.get(prefix), f"Your should add '{uri}' or it's part to ignored or "\
                                         f"add a new rule with path '{prefix}'"
 
-        model, slug, updated, priority = self.models.get(prefix)
+        model, attrs = self.models.get(prefix)
         prepared = []
 
         try:
             for record in eval(self.query):
-                uri = '/' + getattr(record, slug) if slug else ''
+                uri = '/' + getattr(record, attrs['slug']) if attrs['slug'] else ''
                 loc = f'{self.url}{prefix}{uri}{suffix}'
 
-                if updated:
-                    lastmod = getattr(record, updated)
+                if attrs.get('lastmod'):
+                    lastmod = getattr(record, attrs['lastmod'])
                     if isinstance(lastmod, datetime):
                         lastmod = lastmod.strftime('%Y-%m-%dT%H:%M:%S')
                 else:
                     lastmod = None
 
-                prepared.append(Record(loc, lastmod, priority))
+                prepared.append(Record(loc, lastmod, attrs['priority']))
         except AttributeError:
-            self.log.warning(f'{model} has no attributes: {slug} and/or {updated}')
+            self.log.warning(f'{model} has no attributes: {attrs["slug"]} and/or {attrs["lastmod"]}')
 
         self.log.debug(f'Included {len(prepared)} records')
         return prepared
