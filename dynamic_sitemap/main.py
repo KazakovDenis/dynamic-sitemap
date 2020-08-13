@@ -36,7 +36,6 @@ Moreover you can get a static file by using:
     sitemap.build_static()
 """
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple
 from datetime import datetime
 from filecmp import cmp
 from itertools import tee
@@ -47,18 +46,17 @@ from shutil import copyfile
 from typing import TypeVar
 from xml.etree import ElementTree as ET
 
-from .helpers import set_debug_level
+from .helpers import *
 
 
 EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
 HTTPResponse = TypeVar('HTTPResponse')
-Record = namedtuple('Record', 'loc lastmod priority')
-PathModel = namedtuple('PathModel', 'model attrs')
 
 QUERIES = {
     'django': 'model.objects.all()',
     'peewee': 'model.select()',
     'sqlalchemy': 'model.query.all()',
+    'local': 'model.all()',
 }
 
 XML_ATTRS = {
@@ -131,19 +129,19 @@ class SitemapMeta(metaclass=ABCMeta):
         :param app: an application instance
         :param base_url: your base URL such as 'http://site.com'
         :param config_obj: a class with configurations
-        :param orm: an ORM name used in project
+        :param orm: an ORM name used in project (use 'local' and check helpers.Model out for raw SQL queries)
         """
 
         self.app = app
         self.url = base_url
         self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        self.query = QUERIES[orm.casefold()]    # a query to get all objects of a model
+        self.query = QUERIES[orm.casefold()]
         self.rules = None
         self.log = None
 
         # containers
         self.data = []                               # to store Record instances
-        self.models = {}                             # to store db objects added by add_rule
+        self.models = {}                             # to store Models added by add_rule
 
         self.update(config_obj)
 

@@ -34,7 +34,7 @@ def test_flask_create_map(request, flask_map):
 
     flask_map.config.DEBUG = True
     flask_map.update()
-    assert flask_map.query == 'model.query.all()'
+    assert flask_map.start
 
 
 def test_flask_build_static(flask_map):
