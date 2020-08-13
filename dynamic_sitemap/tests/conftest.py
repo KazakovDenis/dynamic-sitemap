@@ -4,6 +4,7 @@ import os
 import pytest
 
 from .. import *
+from ..helpers import Model
 from .mocks import *
 
 
@@ -38,7 +39,7 @@ record = Mock('slug', 'updated', 'priority')
 rule = Mock(methods=['GET'], rule='/url')
 
 
-class Model:
+class ORMModel:
     # for SQLAlchemy, DjangoORM
     query = objects = Mock(
         all=lambda: [
@@ -53,13 +54,15 @@ class Model:
         return getattr(cls.query, 'all')()
 
 
-def teardown_module():
-    for file in os.listdir(TEST_FOLDER):
-        if file.rsplit('.', 1)[-1] == 'xml':
-            os.remove(os.path.join(TEST_FOLDER, file))
+@pytest.fixture
+def local_model():
+    """Creates an instance of helpers.Model"""
+    def extractor():
+        return [('slug1', '01.01.2020'), ('slug2', '02.02.2020')]
+    return Model(extractor)
 
 
-@pytest.fixture(autouse=True, scope='session')
+@pytest.fixture
 def config():
     """Creates an instance of a basis sitemap object"""
     config = SitemapConfig()
@@ -67,7 +70,13 @@ def config():
     return config
 
 
-@pytest.fixture(autouse=True, scope='session')
+@pytest.fixture
 def default_map(config):
     """Creates an instance of a basis sitemap object"""
     return DefaultSitemap(Mock, TEST_URL, config_obj=config)
+
+
+def teardown_module():
+    for file in os.listdir(TEST_FOLDER):
+        if file.rsplit('.', 1)[-1] == 'xml':
+            os.remove(os.path.join(TEST_FOLDER, file))

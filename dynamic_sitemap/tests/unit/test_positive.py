@@ -6,13 +6,8 @@ from ..conftest import *
     SitemapConfig(),
     type('Config', tuple(), {}),
 ])
-def test_config_from_obj(request, config, obj):
+def test_config_from_obj(config, obj):
     """Tests configuration's setters and getters"""
-    def teardown():
-        config.ALTER_PRIORITY = None
-        del config.TEST
-    request.addfinalizer(teardown)
-
     obj.TEST = True
     obj.ALTER_PRIORITY = 0.4
     config.from_object(obj)
@@ -31,9 +26,9 @@ def test_default_create_map(default_map, config):
 @pytest.mark.parametrize('priority', [0.5, 0.733, 1])
 def test_default_add_rule(default_map, priority):
     """Tests a rule creation"""
-    default_map.add_rule('/app', Model, priority=priority, lastmod='updated')
+    default_map.add_rule('/app', ORMModel, priority=priority, lastmod='updated')
     obj = default_map.models['/app']
-    assert obj.model == Model
+    assert obj.model == ORMModel
     assert isinstance(obj.attrs['slug'], str)
     assert isinstance(obj.attrs['lastmod'], str)
     assert isinstance(obj.attrs['priority'], (float, int))
@@ -45,12 +40,8 @@ def test_default_get_dynamic_rules(default_map):
         assert '<' in url
 
 
-def test_default_get_logger(default_map, request):
+def test_default_get_logger(default_map):
     """Tests a logger creation and debug level setup"""
-    def teardown():
-        default_map.config.DEBUG = False
-    request.addfinalizer(teardown)
-
     default_map.config.DEBUG = True
     default_map.get_logger()
     assert default_map.log.level == 10
@@ -63,7 +54,6 @@ def test_default_copy_template(default_map, request):
     def teardown():
         from shutil import rmtree
         rmtree(new_dir)
-        default_map.config.TEMPLATE_FOLDER = TEST_FOLDER
     request.addfinalizer(teardown)
 
     os.makedirs(new_dir, exist_ok=True)
@@ -98,9 +88,8 @@ def test_default_prepare_data(default_map):
 def test_default_replace_patterns(default_map, prefix, suffix):
     """Tests Record item data"""
     uri = prefix + '/<slug>'
-    slug = '/' + Model.query.all()[0].slug
-
-    default_map.add_rule(prefix, Model, lastmod='updated', priority=0.7)
+    slug = '/' + ORMModel.query.all()[0].slug
+    default_map.add_rule(prefix, ORMModel, lastmod='updated', priority=0.7)
     rec = default_map._replace_patterns(uri, [prefix, suffix])[0]
     assert rec.loc == f'{default_map.url}{prefix}{slug}{suffix}'
     assert rec.lastmod == TEST_TIME.strftime('%Y-%m-%dT%H:%M:%S')
@@ -112,3 +101,10 @@ def test_default_build_static(default_map):
     path = os.path.join(TEST_FOLDER, 'static.xml')
     default_map.build_static(path)
     assert os.path.exists(path)
+
+
+def test_helpers_model(local_model):
+    """Tests helpers.Model"""
+    rows = tuple(local_model.all())
+    assert rows[1].slug == 'slug2'
+    assert rows[1].lastmod == '02.02.2020'

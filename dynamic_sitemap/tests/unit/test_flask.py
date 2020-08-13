@@ -14,9 +14,12 @@ except ImportError:
 
 
 @pytest.fixture(autouse=True, scope='session')
-def flask_map(config):
+def flask_map():
     """Creates an instance of FlaskSitemap"""
-    return FlaskSitemap(FlaskApp, TEST_URL, config_obj=config)
+    sitemap = FlaskSitemap(FlaskApp, TEST_URL)
+    sitemap.config.TEMPLATE_FOLDER = TEST_FOLDER
+    sitemap.update()
+    return sitemap
 
 
 @pytest.fixture(autouse=True, scope='session')
@@ -40,7 +43,7 @@ def test_flask_create_map(request, flask_map):
 def test_flask_build_static(flask_map):
     """Tests a static file creation"""
     path = os.path.join(TEST_FOLDER, 'static.xml')
-    flask_map.add_rule('/api', Model, lastmod='created')
+    flask_map.add_rule('/api', ORMModel, lastmod='created')
     flask_map.build_static(path)
     assert os.path.exists(path)
 

@@ -27,7 +27,7 @@ def test_priority(default_map, priority, error):
     """Assertion error should be raised when priority is not in range 0.0-1.0.
     TypeError should be raised when got non-numeric."""
     with pytest.raises(error):
-        default_map.add_rule('/app', Model, priority=priority)
+        default_map.add_rule('/app', ORMModel, priority=priority)
 
 
 def test_default_copy_file_exists(request, default_map):
