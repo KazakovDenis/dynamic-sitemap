@@ -28,8 +28,7 @@ class DefaultSitemap(SitemapMeta):
         super().__init__(app, base_url, config_obj)
 
     def get_rules(self):
-        # todo: change to DEFAULT and make tests
-        return iter(STATIC_URLS)
+        return iter(DEFAULT_URLS)
 
     def view(self):
         return 'response'
