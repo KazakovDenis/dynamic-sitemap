@@ -18,9 +18,7 @@ def test_config_from_obj(config, obj):
 # Base object tests
 def test_default_create_map(default_map, config):
     """Tests an instance creation"""
-    time = TEST_TIME.strftime('%Y-%m-%dT%H')
-    assert isinstance(default_map.start, str)
-    assert time in default_map.start
+    assert TEST_DATE_STR in default_map.start
 
 
 @pytest.mark.parametrize('priority', [0.5, 0.733, 1])
@@ -71,17 +69,32 @@ def test_default_exclude(default_map, debug):
         assert 'ign' not in url
 
 
-def test_default_prepare_data(default_map):
+def test_default_prepare_data_static(default_map):
     """Tests preparing data by pattern"""
     assert not default_map.data
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
-    default_map.config.IGNORED.extend(DYNAMIC_URLS)
+    default_map.config.IGNORED.update(DYNAMIC_URLS)
     default_map._prepare_data()
-    assert isinstance(default_map.data[-1].loc, str)
-    assert isinstance(default_map.data[-1].lastmod, str)
+    assert TEST_URL in default_map.data[-1].loc
+    assert TEST_DATE_STR in default_map.data[-1].lastmod
     assert default_map.data[0].priority == 1.0
     assert default_map.data[-1].priority == 0.3
+
+
+def test_default_prepare_data_dynamic(default_map):
+    """Tests preparing data by pattern"""
+    assert not default_map.data
+    default_map.config.INDEX_PRIORITY = 1.0
+    default_map.config.ALTER_PRIORITY = 0.3
+    default_map.config.IGNORED.remove('/ign/<slug>')
+    default_map.add_rule('/ign', ORMModel, lastmod='updated', priority=0.91)
+    default_map._prepare_data()
+    assert TEST_URL in default_map.data[-1].loc
+    assert TEST_DATE_STR in default_map.data[-1].lastmod
+    assert default_map.data[0].priority == 1.0
+    assert default_map.data[1].priority == 0.3
+    assert default_map.data[-1].priority == 0.9
 
 
 @pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x'])
@@ -94,14 +107,14 @@ def test_default_replace_patterns(default_map, prefix, suffix, model):
     default_map.add_rule(prefix, ORMModel, lastmod='updated', priority=0.7)
     rec = default_map._replace_patterns(uri, [prefix, suffix])[0]
     assert rec.loc == f'{default_map.url}{prefix}{slug}{suffix}'
-    assert rec.lastmod == TEST_TIME.strftime('%Y-%m-%dT%H:%M:%S')
+    assert rec.lastmod == TEST_TIME_STR
     assert rec.priority == 0.7
 
 
 def test_default_build_static(default_map):
     """Tests a static file creation"""
     path = os.path.join(TEST_FOLDER, 'static.xml')
-    default_map.config.IGNORED.extend(DYNAMIC_URLS)
+    default_map.config.IGNORED.update(DYNAMIC_URLS)
     default_map.build_static(path)
     assert os.path.exists(path)
 
