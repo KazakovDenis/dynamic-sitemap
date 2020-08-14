@@ -43,12 +43,22 @@ def test_default_copy_file_exists(request, default_map):
         default_map._copy_template()
 
 
-def test_default_copy_permission(request, default_map):
+def test_default_copy_permission(default_map):
     """Tests exception which should be raised when putting into not existing directory"""
-    def teardown():
-        default_map.config.TEMPLATE_FOLDER = TEST_FOLDER
-    request.addfinalizer(teardown)
-
     default_map.config.TEMPLATE_FOLDER = 'no_such_dir'
     with pytest.raises(PermissionError):
         default_map._copy_template()
+
+
+@pytest.mark.parametrize('folder,path,error', [
+    (None, None, AssertionError),
+    (WRONG_FOLDER, None, FileNotFoundError),
+    (None, WRONG_FOLDER, FileNotFoundError),
+])
+def test_default_build_static(default_map, folder, path, error):
+
+    default_map.filename = 'static.xml'
+    default_map.config.STATIC_FOLDER = folder
+    default_map.config.IGNORED.update(DYNAMIC_URLS)
+    with pytest.raises(error):
+        default_map.build_static(path)

@@ -121,6 +121,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
     config = SitemapConfig()
     content_type = 'application/xml'
+    filename = 'sitemap.xml'
 
     def __init__(self, app, base_url: str, config_obj: (type, SitemapConfig) = None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
@@ -159,15 +160,17 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.models[path] = PathModel(model=model, attrs={'slug': slug, 'lastmod':  lastmod, 'priority':  priority})
 
-    def build_static(self, filename='sitemap.xml'):
+    def build_static(self, path: (str, tuple, list) = None):
         """Builds an XML file. The system user of the app should have rights to write files
 
-        :param filename: the name of target file (without path)
+        :param path: a path to destination directory
         """
         self._prepare_data()
 
-        folder = self.config.STATIC_FOLDER
-        fullname = filename if not isinstance(folder, str) else join(*folder, filename)
+        folder = path or self.config.STATIC_FOLDER
+        assert folder, 'You should set config.STATIC_FOLDER or pass it directly into build_static()'
+
+        fullname = join(folder, self.filename) if isinstance(folder, str) else join(*folder, self.filename)
         self.log.info(f'Creating {fullname}...')
 
         url_set = ET.Element('urlset', XML_ATTRS)
@@ -187,9 +190,9 @@ class SitemapMeta(metaclass=ABCMeta):
         try:
             tree.write(fullname, xml_declaration=True, encoding='UTF-8')
         except FileNotFoundError as e:
-            error = f'Seems like {fullname} is not found or credentials required.'
+            error = f'Seems like path "{path}" is not found or credentials required.'
             self.log.error(error)
-            raise Exception(error) from e
+            raise FileNotFoundError(error) from e
 
         self.log.info('Static sitemap is ready')
 

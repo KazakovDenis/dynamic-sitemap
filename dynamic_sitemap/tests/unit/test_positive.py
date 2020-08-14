@@ -113,10 +113,12 @@ def test_default_replace_patterns(default_map, prefix, suffix, model):
 
 def test_default_build_static(default_map):
     """Tests a static file creation"""
-    path = os.path.join(TEST_FOLDER, 'static.xml')
+    filename = 'static.xml'
+    default_map.filename = filename
     default_map.config.IGNORED.update(DYNAMIC_URLS)
-    default_map.build_static(path)
-    assert os.path.exists(path)
+    default_map.build_static(TEST_FOLDER)
+    file = os.path.join(TEST_FOLDER, filename)
+    assert os.path.exists(file)
 
 
 def test_helpers_model(local_model):

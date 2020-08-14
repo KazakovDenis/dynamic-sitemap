@@ -18,6 +18,7 @@ TEST_TIME_STR = TEST_TIME.strftime('%Y-%m-%dT%H:%M:%S')
 TEST_URL = 'http://site.com'
 TEST_FOLDER = os.path.join(EXTENSION_ROOT, 'tests', 'tmp')
 TEST_FILE = os.path.join(TEST_FOLDER, 'sitemap.xml')
+WRONG_FOLDER = os.path.join(TEST_FOLDER, 'no_such_dir')
 os.makedirs(TEST_FOLDER, exist_ok=True)
 
 STATIC_URLS = '/', '/url', '/ign'

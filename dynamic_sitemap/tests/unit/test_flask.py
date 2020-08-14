@@ -42,10 +42,12 @@ def test_flask_create_map(request, flask_map):
 
 def test_flask_build_static(flask_map):
     """Tests a static file creation"""
-    path = os.path.join(TEST_FOLDER, 'static.xml')
+    filename = 'static.xml'
+    flask_map.filename = filename
     flask_map.add_rule('/api', ORMModel, lastmod='created')
-    flask_map.build_static(path)
-    assert os.path.exists(path)
+    flask_map.build_static(TEST_FOLDER)
+    file = os.path.join(TEST_FOLDER, filename)
+    assert os.path.exists(file)
 
 
 def test_flask_view(flask_client):
