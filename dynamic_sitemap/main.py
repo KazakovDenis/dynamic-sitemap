@@ -36,7 +36,6 @@ Moreover you can get a static file by using:
     sitemap.build_static()
 """
 from abc import ABCMeta, abstractmethod
-from datetime import datetime
 from filecmp import cmp
 from itertools import tee
 from logging import getLogger, StreamHandler

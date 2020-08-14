@@ -108,3 +108,12 @@ def test_helpers_model(local_model):
     rows = tuple(local_model.all())
     assert rows[1].slug == 'slug2'
     assert rows[1].lastmod == datetime(2020, 2, 2)
+
+
+def test_helpers_model_add_rule(default_map, local_model):
+    """Tests add_rule with helpers.Model"""
+    default_map.add_rule('/path', local_model, slug='slug_attr', lastmod='lastmod_attr', priority=0.91)
+    path_model = default_map.models['/path']
+    assert path_model.attrs['slug'] == 'slug_attr'
+    assert path_model.attrs['lastmod'] == 'lastmod_attr'
+    assert path_model.attrs['priority'] == 0.9
