@@ -1,5 +1,6 @@
 from collections import namedtuple
-from typing import Callable
+from datetime import datetime
+from typing import Callable, Iterable, Iterator, Tuple
 
 
 PathModel = namedtuple('PathModel', 'model attrs')
@@ -36,8 +37,8 @@ class Model:
 
     """
 
-    def __init__(self, extractor: Callable):
+    def __init__(self, extractor: Callable[[], Iterable[Tuple[str, datetime]]]):
         self.extract = extractor
 
-    def all(self):
-        return iter(_Row(slug=i[0], lastmod=i[1]) for i in self.extract())
+    def all(self) -> Iterator[_Row]:
+        return (_Row(slug=i[0], lastmod=i[1]) for i in self.extract())

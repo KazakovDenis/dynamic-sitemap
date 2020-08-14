@@ -107,4 +107,4 @@ def test_helpers_model(local_model):
     """Tests helpers.Model"""
     rows = tuple(local_model.all())
     assert rows[1].slug == 'slug2'
-    assert rows[1].lastmod == '02.02.2020'
+    assert rows[1].lastmod == datetime(2020, 2, 2)
