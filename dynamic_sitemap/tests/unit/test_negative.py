@@ -17,13 +17,26 @@ def test_config_set(default_map):
 
 
 # Base object tests
+@pytest.mark.parametrize('url, config, orm, error', [
+    (b'Wrong URL type', None, None, TypeError),
+    ('Wrong URL', None, None, ValueError),
+    (TEST_URL, 'Wrong config type', None, NotImplementedError),
+    (TEST_URL, None, b'Wrong ORM type', TypeError),
+    (TEST_URL, None, 'Unknown ORM', NotImplementedError),
+])
+def test_default_create_map(url, orm, config, error):
+    """Test exceptions while init"""
+    with pytest.raises(error):
+        DefaultSitemap(Mock, url, config_obj=config, orm=orm)
+
+
 @pytest.mark.parametrize('priority, error', [
     (5, AssertionError),
     (-1, AssertionError),
     ('0.5', TypeError),
     ('high', TypeError)
 ])
-def test_add_rule_priority(default_map, priority, error):
+def test_default_add_rule_priority(default_map, priority, error):
     """Assertion error should be raised when priority is not in range 0.0-1.0.
     TypeError should be raised when got non-numeric."""
     with pytest.raises(error):

@@ -1,11 +1,45 @@
 from collections import namedtuple
 from datetime import datetime
 from typing import Callable, Iterable, Iterator, Tuple
+from urllib.parse import urlparse
 
 
 PathModel = namedtuple('PathModel', 'model attrs')
 Record = namedtuple('Record', 'loc lastmod priority')
 _Row = namedtuple('Row', 'slug lastmod')
+
+_QUERIES = {
+    'django': 'model.objects.all()',
+    'peewee': 'model.select()',
+    'sqlalchemy': 'model.query.all()',
+    'local': 'model.all()',
+}
+
+
+def check_url(url: str) -> str:
+    """Checks URL correct"""
+    if not isinstance(url, str):
+        raise TypeError('URL should be a string')
+
+    parsed = urlparse(url)
+    if not all([parsed.scheme, parsed.netloc]):
+        raise ValueError('Wrong URL. It should have a scheme and a hostname: ' + url)
+    return url
+
+
+def get_query(orm_name: str = None) -> str:
+    """Returns ORM query which evaluation returning Records"""
+    if orm_name is None:
+        return _QUERIES['local']
+
+    if isinstance(orm_name, str):
+        orm = orm_name.casefold()
+        if orm in _QUERIES:
+            return _QUERIES[orm]
+        else:
+            raise NotImplementedError('ORM is not supported yet: ' + orm_name)
+
+    raise TypeError('"orm" argument should be str or None')
 
 
 def set_debug_level(logger):

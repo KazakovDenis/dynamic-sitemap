@@ -27,8 +27,8 @@ DEFAULT_URLS = STATIC_URLS + DYNAMIC_URLS
 
 
 class DefaultSitemap(SitemapMeta):
-    def __init__(self, app, base_url: str, config_obj=None):
-        super().__init__(app, base_url, config_obj)
+    def __init__(self, app, base_url: str, config_obj=None, orm=None):
+        super().__init__(app, base_url, config_obj, orm)
 
     def get_rules(self):
         return iter(DEFAULT_URLS)
@@ -75,7 +75,8 @@ def config():
 @pytest.fixture
 def default_map(config):
     """Creates an instance of a basis sitemap object"""
-    return DefaultSitemap(Mock, TEST_URL, config_obj=config)
+    # todo: test orm=None
+    return DefaultSitemap(Mock, TEST_URL, config_obj=config, orm='sqlalchemy')
 
 
 def teardown_module():

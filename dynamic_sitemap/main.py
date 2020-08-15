@@ -50,14 +50,6 @@ from .helpers import *
 
 EXTENSION_ROOT = abspath(__file__).rsplit('/', 1)[0]
 HTTPResponse = TypeVar('HTTPResponse')
-
-QUERIES = {
-    'django': 'model.objects.all()',
-    'peewee': 'model.select()',
-    'sqlalchemy': 'model.query.all()',
-    'local': 'model.all()',
-}
-
 XML_ATTRS = {
     'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
     'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
@@ -134,9 +126,9 @@ class SitemapMeta(metaclass=ABCMeta):
         """
 
         self.app = app
-        self.url = base_url
+        self.url = check_url(base_url)
         self.start = datetime.now().strftime(self.time_fmt)
-        self.query = QUERIES[orm.casefold()] if isinstance(orm, str) else QUERIES['local']
+        self.query = get_query(orm)
         self.rules = None
         self.log = None
 
@@ -206,6 +198,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.log = self.get_logger()
         self.rules = self.get_rules()
+        # todo: the template is copied twice if TEMPLATE_FOLDER set after init
         self._copy_template()
 
     def get_logger(self):
@@ -221,7 +214,7 @@ class SitemapMeta(metaclass=ABCMeta):
         return logger
 
     def get_dynamic_rules(self) -> list:
-        """Returns alls url should be added as a rule or to ignored list"""
+        """Returns all url should be added as a rule or to ignored list"""
         self.rules, all_rules = tee(self.rules)
         return [i for i in all_rules if search(r'<[\w:]+>', i)]
 
