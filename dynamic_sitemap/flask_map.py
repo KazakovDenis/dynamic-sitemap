@@ -9,8 +9,8 @@ Basic example:
 
     app = Flask(__name__)
     sitemap = FlaskSitemap(app, 'https://mysite.com')
-    sitemap.config.IGNORED.extend(['/edit', '/upload'])
-    sitemap.config.STATIC_FOLDER = ('..', 'static',)
+    sitemap.config.IGNORED.update(['/edit', '/upload'])
+    sitemap.config.ALTER_PRIORITY = 0.1
     sitemap.update()
     sitemap.add_rule('/app', Post, lastmod='created')
     sitemap.add_rule('/app/tag', Tag, priority=0.4)
@@ -22,8 +22,8 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
 
     class Config:
         STATIC_FOLDER = ('public',)
-        IGNORED = ['/admin', '/back-office', '/other-pages']
-        ALTER_PRIORITY = 0.1
+        IGNORED = {'/admin', '/back-office', '/other-pages'}
+        CONTENT_PRIORITY = 0.7
         LOGGER = sm_logger
 
     sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
@@ -35,13 +35,13 @@ Moreover you can get a static file by using:
 from .main import *
 
 
-FlaskApp = TypeVar('FlaskApp')
+FlaskApp = TypeVar('Flask')
 
 
 class FlaskSitemap(SitemapMeta):
     """A sitemap generator for a Flask application. For usage see the module documentation"""
 
-    def __init__(self, app: FlaskApp, base_url: str, config_obj: (type, SitemapConfig) = None, orm: str = 'sqlalchemy'):
+    def __init__(self, app: FlaskApp, base_url: str, config_obj: ConfType = None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Flask application

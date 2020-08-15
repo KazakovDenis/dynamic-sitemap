@@ -1,5 +1,6 @@
 from collections import namedtuple
 from datetime import datetime
+from logging import Logger
 from typing import Callable, Iterable, Iterator, Tuple
 from urllib.parse import urlparse
 
@@ -42,7 +43,7 @@ def get_query(orm_name: str = None) -> str:
     raise TypeError('"orm" argument should be str or None')
 
 
-def set_debug_level(logger):
+def set_debug_level(logger: Logger):
     """Sets up logger and its handlers levels to Debug
 
     :param logger: an instance of logging.Logger
