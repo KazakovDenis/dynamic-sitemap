@@ -49,7 +49,8 @@ class FlaskSitemap(SitemapMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project
         """
-        assert app.extensions.get(orm), f'{orm} extension is not found'
+        if orm:
+            assert app.extensions.get(orm), f'{orm} extension is not found'
         self.config.LOGGER = app.logger.getChild('sitemap')
         self.config.TEMPLATE_FOLDER = join(app.root_path, app.template_folder)
         super().__init__(app, base_url, config_obj, orm)

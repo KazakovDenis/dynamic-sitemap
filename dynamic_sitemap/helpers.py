@@ -32,7 +32,7 @@ class Model:
             return iter(rows)
 
         post = Model(extract_posts)
-        sitemap = FlaskSitemap(app, 'https://mysite.com')
+        sitemap = FlaskSitemap(app, 'https://mysite.com', orm=None)
         sitemap.add_rule('/post', post, slug='slug', lastmod='lastmod')    # should be only 'slug' and 'lastmod'
 
     """

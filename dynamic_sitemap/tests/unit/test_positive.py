@@ -111,10 +111,12 @@ def test_default_replace_patterns(default_map, prefix, suffix, model):
     assert rec.priority == 0.7
 
 
-def test_default_build_static(default_map):
+@pytest.mark.parametrize('priority', [None, 0.5])
+def test_default_build_static(default_map, priority):
     """Tests a static file creation"""
     filename = 'static.xml'
     default_map.filename = filename
+    default_map.config.ALTER_PRIORITY = priority
     default_map.config.IGNORED.update(DYNAMIC_URLS)
     default_map.build_static(TEST_FOLDER)
     file = os.path.join(TEST_FOLDER, filename)

@@ -122,6 +122,7 @@ class SitemapMeta(metaclass=ABCMeta):
     config = SitemapConfig()
     content_type = 'application/xml'
     filename = 'sitemap.xml'
+    time_fmt = '%Y-%m-%dT%H:%M:%S'
 
     def __init__(self, app, base_url: str, config_obj: (type, SitemapConfig) = None, orm: str = 'sqlalchemy'):
         """Creates an instance of a Sitemap
@@ -134,8 +135,8 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.app = app
         self.url = base_url
-        self.start = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-        self.query = QUERIES[orm.casefold()]
+        self.start = datetime.now().strftime(self.time_fmt)
+        self.query = QUERIES[orm.casefold()] if isinstance(orm, str) else QUERIES['local']
         self.rules = None
         self.log = None
 
@@ -154,6 +155,8 @@ class SitemapMeta(metaclass=ABCMeta):
         :param lastmod: an attribute of this model which is an instance of the datetime object
         :param priority: a priority of URL to be set
         """
+        assert slug, 'Set in the "slug" parameter your model\'s attribute used in a URL'
+
         if priority:
             priority = round(priority or self.config.CONTENT_PRIORITY, 1)
             assert 0.0 < priority <= 1.0, 'Priority should be a float between 0.0 and 1.0'
@@ -313,17 +316,17 @@ class SitemapMeta(metaclass=ABCMeta):
             for record in eval(self.query):
                 uri = '/' + getattr(record, attrs['slug']) if attrs['slug'] else ''
                 loc = f'{self.url}{prefix}{uri}{suffix}'
+                lastmod = None
 
                 if attrs.get('lastmod'):
                     lastmod = getattr(record, attrs['lastmod'])
                     if isinstance(lastmod, datetime):
-                        lastmod = lastmod.strftime('%Y-%m-%dT%H:%M:%S')
-                else:
-                    lastmod = None
+                        lastmod = lastmod.strftime(self.time_fmt)
 
                 prepared.append(Record(loc, lastmod, attrs['priority']))
         except AttributeError as exc:
-            msg = f'{model} has no attributes: {attrs["slug"]} and/or {attrs["lastmod"]}'
+            msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n'\
+                  f'slug = {attrs["slug"]} and/or lastmod = {attrs.get("lastmod")}'
             self.log.warning(msg)
             raise AttributeError(msg) from exc
 
