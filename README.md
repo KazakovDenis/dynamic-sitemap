@@ -6,11 +6,17 @@
 A simple sitemap generator for Python projects.
 
 Already implemented:
-- Flask
+- metaclass SitemapMeta
+- FlaskSitemap
 
 ## Installation
+- Using pip  
+```shell script
+pip install dynamic-sitemap
+```
+or
 - Download it from this [link](https://github.com/KazakovDenis/dynamic-sitemap/archive/master.zip) and unzip to your project
-  
+
 or
 - Add it as a git submodule
 ```shell script
@@ -21,30 +27,32 @@ git submodule add -b master --name sitemap https://github.com/KazakovDenis/dynam
 ## Usage
 Basic example:
 ```python
-from flask import Flask
-from app.sitemap import FlaskSitemap
+from framework import Framework
+from dynamic_sitemap import FrameworkSitemap
+from models import Post, Tag
 
-app = Flask(__name__)
-sitemap = FlaskSitemap(app, 'https://mysite.com')
-sitemap.config.IGNORED.extend(['/edit', '/upload'])
+app = Framework(__name__)
+sitemap = FrameworkSitemap(app, 'https://mysite.com')
+sitemap.config.IGNORED.update(['/edit', '/upload'])
 sitemap.config.TEMPLATE_FOLDER = ['app', 'templates']
+sitemap.update()
 sitemap.add_rule('/app', Post, lastmod='created')
 sitemap.add_rule('/app/tag', Tag, priority=0.4)
 ```
-*IGNORED* has a priority over *add_rule*.  
-  
+Then run your server and visit http://mysite.com/sitemap.xml.
+
 Also you can set configurations from your class (and __it's preferred__):
 ```python
 sm_logger = logging.getLogger('sitemap')
 sm_logger.setLevel(30)
 
 class Config:
-    TEMPLATE_FOLDER = ['app', 'templates']
-    IGNORED = ['/admin', '/back-office', '/other-pages']
+    TEMPLATE_FOLDER = os.path.join(ROOT, 'app', 'templates')
+    IGNORED = {'/admin', '/back-office', '/other-pages'}
     ALTER_PRIORITY = 0.1
     LOGGER = sm_logger
 
-sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
+sitemap = FrameworkSitemap(app, 'https://myshop.org', config_obj=Config)
 sitemap.add_rule('/goods', Product, slug='id', lastmod='updated')
 ```
 Moreover you can get a static file by using:
@@ -52,26 +60,8 @@ Moreover you can get a static file by using:
 sitemap.build_static()
 ```
 
-## Testing  
-Install dependencies before
-```shell script
-pip install -r requirements/test_all.txt
-```
-or
-```shell script
-pip install -r requirements/test_base.txt
-```
-to install with no frameworks.
-
-### Unit testing
-Execute the command below to run unit tests
-```shell script
-python -m pytest
-```
-
-### Coverage
-Execute the command below to check test coverage
-```shell script
-coverage run -m pytest && coverage report -m && coverage html
-```
-and open `htmlcov/index.html` in a browser
+Some important rules:  
+- use update() method after setting configuration attributes directly (not need if you pass your config object to init)
+- use get_dynamic_rules() to see which urls you should add as a rule or to ignored
+- *config.IGNORED* has a priority over *add_rule*
+- use helpers.Model if your ORM is not supported

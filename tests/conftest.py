@@ -3,8 +3,8 @@ import os
 
 import pytest
 
-from .. import *
-from ..helpers import Model
+from dynamic_sitemap.helpers import Model
+from dynamic_sitemap import *
 from .mocks import *
 
 
@@ -12,11 +12,11 @@ PY_TYPES = int, float, complex, tuple, list, set, dict, str, bytes, bytearray
 FALSE_INSTANCES = (py_type() for py_type in PY_TYPES)
 TRUE_INSTANCES = 1, 1.0, 1+1j, (1,), [1], {1}, {1: 1}, 'str', b'bytes', bytearray(b'array')
 
+TEST_URL = 'http://site.com'
 TEST_TIME = datetime.now()
 TEST_DATE_STR = TEST_TIME.strftime('%Y-%m-%dT')
 TEST_TIME_STR = TEST_TIME.strftime('%Y-%m-%dT%H:%M:%S')
-TEST_URL = 'http://site.com'
-TEST_FOLDER = os.path.join(EXTENSION_ROOT, 'tests', 'tmp')
+TEST_FOLDER = os.path.join(EXTENSION_ROOT, 'tmp')
 TEST_FILE = os.path.join(TEST_FOLDER, 'sitemap.xml')
 WRONG_FOLDER = os.path.join(TEST_FOLDER, 'no_such_dir')
 os.makedirs(TEST_FOLDER, exist_ok=True)
