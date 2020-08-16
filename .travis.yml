@@ -8,4 +8,4 @@ install:
   - pip install -r tests/requirements/all.txt
 
 script:
-  - python -m coverage run -m pytest && coverage report -m
+  - python -m coverage run && coverage report

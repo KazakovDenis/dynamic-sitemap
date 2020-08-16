@@ -20,6 +20,9 @@ if __name__ == '__main__':
         long_description_content_type='text/markdown',
         keywords='sitemap',
         packages=[about['__module__']],
+        package_data={
+            about['__module__']: ['templates/*'],
+        },
         classifiers=[
             'Development Status :: 3 - Alpha',
             'Framework :: Flask',

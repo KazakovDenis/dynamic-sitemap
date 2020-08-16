@@ -5,8 +5,15 @@ try:
     from flask import Flask
     from flask_sqlalchemy import SQLAlchemy
 
+
+    class _FlaskConfig:
+        DEBUG = False
+        TESTING = True
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+        SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     FlaskApp = Flask('FlaskApp', template_folder=TEST_FOLDER)
-    FlaskApp.testing = True
+    FlaskApp.config.from_object(_FlaskConfig)
     db = SQLAlchemy(FlaskApp)
 
 except ImportError:
