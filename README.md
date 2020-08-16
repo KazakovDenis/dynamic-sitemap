@@ -72,3 +72,5 @@ Some important rules:
 - use get_dynamic_rules() to see which urls you should add as a rule or to ignored
 - *config.IGNORED* has a priority over *add_rule*
 - use helpers.Model if your ORM is not supported
+
+Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/CHANGELOG.md)
