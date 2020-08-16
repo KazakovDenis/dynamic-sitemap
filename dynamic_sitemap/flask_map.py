@@ -64,7 +64,7 @@ class FlaskSitemap(SitemapMeta):
         self.config.LOGGER = app.logger.getChild('sitemap')
         self.config.TEMPLATE_FOLDER = join(app.root_path, app.template_folder)
         super().__init__(app, base_url, config_obj, orm)
-        app.add_url_rule('/sitemap.xml', endpoint='sitemap_ext', view_func=self.view)
+        app.add_url_rule('/sitemap.xml', endpoint='dynamic_sitemap', view_func=self.view)
 
     def get_rules(self) -> iter:
         """Returns an iterator of URL rules"""
