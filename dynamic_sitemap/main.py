@@ -6,13 +6,23 @@ Already implemented:
 - metaclass SitemapMeta
 - Flask (FlaskSitemap)
 
-Basic example:
+'Hello world' example:
 
     from framework import Framework
-    from sitemap_ext import FlaskSitemap
+    from dynamic_sitemap import FrameworkSitemap
 
     app = Framework(__name__)
     sitemap = FrameworkSitemap(app, 'https://mysite.com')
+    sitemap.update()
+
+Basic example with some Models:
+
+    from framework import Framework
+    from dynamic_sitemap import FrameworkSitemap
+    from models import Post, Tag
+
+    app = Framework(__name__)
+    sitemap = FrameworkSitemap(app, 'https://mysite.com', orm='sqlalchemy')
     sitemap.config.IGNORED.update(['/edit', '/upload'])
     sitemap.config.TEMPLATE_FOLDER = ['app', 'templates']
     sitemap.update()
@@ -123,7 +133,7 @@ class SitemapMeta(metaclass=ABCMeta):
     filename = 'sitemap.xml'
     time_fmt = '%Y-%m-%dT%H:%M:%S'
 
-    def __init__(self, app, base_url: str, config_obj: ConfType = None, orm: str = 'sqlalchemy'):
+    def __init__(self, app, base_url: str, config_obj: ConfType = None, orm: str = None):
         """Creates an instance of a Sitemap
 
         :param app: an application instance

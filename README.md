@@ -10,22 +10,30 @@ Already implemented:
 - FlaskSitemap
 
 ## Installation
-- Using pip  
+- using pip  
 ```shell script
 pip install dynamic-sitemap
 ```
 or
-- Download it from this [link](https://github.com/KazakovDenis/dynamic-sitemap/archive/master.zip) and unzip to your project
-
-or
-- Add it as a git submodule
+- as a git submodule
 ```shell script
 git submodule add -b master --name sitemap https://github.com/KazakovDenis/dynamic-sitemap path/to/app/sitemap
 ```
   
   
 ## Usage
-Basic example:
+"Hello world" example:
+```python
+from framework import Framework
+from dynamic_sitemap import FrameworkSitemap
+
+app = Framework(__name__)
+sitemap = FrameworkSitemap(app, 'https://mysite.com')
+sitemap.update()
+```
+Then run your server and visit http://mysite.com/sitemap.xml.  
+
+Basic example with some Models:
 ```python
 from framework import Framework
 from dynamic_sitemap import FrameworkSitemap
@@ -36,10 +44,9 @@ sitemap = FrameworkSitemap(app, 'https://mysite.com')
 sitemap.config.IGNORED.update(['/edit', '/upload'])
 sitemap.config.TEMPLATE_FOLDER = ['app', 'templates']
 sitemap.update()
-sitemap.add_rule('/app', Post, lastmod='created')
-sitemap.add_rule('/app/tag', Tag, priority=0.4)
+sitemap.add_rule('/blog', Post, lastmod='created')
+sitemap.add_rule('/blog/tag', Tag, priority=0.4)
 ```
-Then run your server and visit http://mysite.com/sitemap.xml.
 
 Also you can set configurations from your class (and __it's preferred__):
 ```python

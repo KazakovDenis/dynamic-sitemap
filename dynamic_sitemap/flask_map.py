@@ -1,14 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-This module provides a tool to generate a Sitemap of an Flask application.
+This module provides a tool to generate a Sitemap of a Flask application.
 
-Basic example:
+'Hello world' example:
 
     from flask import Flask
-    from sitemap_ext import FlaskSitemap
+    from dynamic_sitemap import FlaskSitemap
 
     app = Flask(__name__)
     sitemap = FlaskSitemap(app, 'https://mysite.com')
+    sitemap.update()
+
+Basic example with some Models:
+
+    from flask import Flask
+    from dynamic_sitemap import FlaskSitemap
+    from models import Post, Tag
+
+    app = Flask(__name__)
+    sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
     sitemap.config.IGNORED.update(['/edit', '/upload'])
     sitemap.config.ALTER_PRIORITY = 0.1
     sitemap.update()
@@ -41,7 +51,7 @@ FlaskApp = TypeVar('Flask')
 class FlaskSitemap(SitemapMeta):
     """A sitemap generator for a Flask application. For usage see the module documentation"""
 
-    def __init__(self, app: FlaskApp, base_url: str, config_obj: ConfType = None, orm: str = 'sqlalchemy'):
+    def __init__(self, app: FlaskApp, base_url: str, config_obj: ConfType = None, orm: str = None):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Flask application
