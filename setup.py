@@ -1,14 +1,7 @@
 #!/usr/bin/env python
-import os
 from setuptools import setup
+from dynamic_sitemap import __about__ as about
 
-from dynamic_sitemap import EXTENSION_ROOT
-
-
-about = {}
-about_path = os.path.join(EXTENSION_ROOT, '__about__.py')
-with open(about_path, 'r') as f:
-    exec(f.read(), about)
 
 with open('README.md', 'r') as f:
     long_description = f.read()
