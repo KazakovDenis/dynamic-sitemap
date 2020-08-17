@@ -40,12 +40,13 @@ from dynamic_sitemap import FrameworkSitemap
 from models import Post, Tag
 
 app = Framework(__name__)
-sitemap = FrameworkSitemap(app, 'https://mysite.com')
+sitemap = FrameworkSitemap(app, 'https://mysite.com', orm='sqlalchemy')
 sitemap.config.IGNORED.update(['/edit', '/upload'])
-sitemap.config.TEMPLATE_FOLDER = ['app', 'templates']
+sitemap.config.TEMPLATE_FOLDER = 'templates'
 sitemap.update()
-sitemap.add_rule('/blog', Post, lastmod='created')
-sitemap.add_rule('/blog/tag', Tag, priority=0.4)
+sitemap.add_elem('/faq', changefreq='monthly', priority=0.4)
+sitemap.add_rule('/blog', Post, lastmod_attr='created', priority=1.0)
+sitemap.add_rule('/blog/tag', Tag, changefreq='daily')
 ```
 
 Also you can set configurations from your class (and __it's preferred__):
@@ -60,7 +61,8 @@ class Config:
     LOGGER = sm_logger
 
 sitemap = FrameworkSitemap(app, 'https://myshop.org', config_obj=Config)
-sitemap.add_rule('/goods', Product, slug='id', lastmod='updated')
+sitemap.add_elem('/about', changefreq='monthly', priority=0.4)
+sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
 ```
 Moreover you can get a static file by using:
 ```python

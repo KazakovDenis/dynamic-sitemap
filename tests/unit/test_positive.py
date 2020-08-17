@@ -27,8 +27,8 @@ def test_default_add_rule(default_map, priority):
     default_map.add_rule('/app', ORMModel, priority=priority, lastmod_attr='updated')
     obj = default_map._models['/app']
     assert obj.model == ORMModel
-    assert isinstance(obj.attrs['loc'], str)
-    assert isinstance(obj.attrs['lastmod'], str)
+    assert isinstance(obj.attrs['loc_attr'], str)
+    assert isinstance(obj.attrs['lastmod_attr'], str)
     assert isinstance(obj.attrs['priority'], (float, int))
 
 
@@ -134,6 +134,6 @@ def test_helpers_model_add_rule(default_map, local_model):
     """Tests add_rule with helpers.Model"""
     default_map.add_rule('/path', local_model, loc_attr='slug_attr', lastmod_attr='lastmod_attr', priority=0.91)
     path_model = default_map._models['/path']
-    assert path_model.attrs['loc'] == 'slug_attr'
-    assert path_model.attrs['lastmod'] == 'lastmod_attr'
+    assert path_model.attrs['loc_attr'] == 'slug_attr'
+    assert path_model.attrs['lastmod_attr'] == 'lastmod_attr'
     assert path_model.attrs['priority'] == 0.9

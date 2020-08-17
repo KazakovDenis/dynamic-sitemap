@@ -68,8 +68,7 @@ class Model:
 
         post = Model(extract_posts)
         sitemap = FlaskSitemap(app, 'https://mysite.com', orm=None)
-        sitemap.add_rule('/post', post, slug='slug', lastmod='lastmod')    # should be only 'slug' and 'lastmod'
-
+        sitemap.add_rule('/post', post, loc_attr='slug', lastmod_attr='lastmod')   # should be only 'slug' and 'lastmod'
     """
 
     def __init__(self, extractor: Callable[[], Iterable[Tuple[str, datetime]]]):

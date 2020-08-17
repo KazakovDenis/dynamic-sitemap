@@ -218,7 +218,12 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self._models[path] = PathModel(
             model=model,
-            attrs={'loc': loc_attr, 'lastmod':  lastmod_attr, 'changefreq':  changefreq, 'priority':  priority or None}
+            attrs={
+                'loc_attr': loc_attr,
+                'lastmod_attr':  lastmod_attr,
+                'changefreq':  changefreq,
+                'priority':  priority or None
+            }
         )
 
     def build_static(self, path: DirPathType = None):
@@ -380,7 +385,7 @@ class SitemapMeta(metaclass=ABCMeta):
             else:
                 # todo: changefreq
                 self._dynamic_data.append(
-                    Record(loc=self.url + uri, lastmod=self.start, changefreq=None, priority=self.config.ALTER_PRIORITY)
+                    Record(urljoin(self.url, uri), self.start, None, self.config.ALTER_PRIORITY)
                 )
 
         self.log.debug('Data for the sitemap is ready')
@@ -403,19 +408,22 @@ class SitemapMeta(metaclass=ABCMeta):
 
         try:
             for record in eval(self.query):
-                uri = '/' + getattr(record, attrs['loc']) if attrs['loc'] else ''
+                uri = '/' + getattr(record, attrs['loc_attr']) if attrs['loc_attr'] else ''
                 loc = f'{self.url}{prefix}{uri}{suffix}'
                 lastmod = None
 
-                if attrs.get('lastmod'):
-                    lastmod = getattr(record, attrs['lastmod'])
+                if attrs['lastmod_attr']:
+                    lastmod = getattr(record, attrs['lastmod_attr'])
                     if isinstance(lastmod, datetime):
                         lastmod = lastmod.strftime(self.time_fmt)
 
-                prepared.append(Record(loc=loc, lastmod=lastmod, changefreq=None, priority=attrs['priority']))
+                self.validate_tags(loc, lastmod, attrs['changefreq'], attrs['priority'])
+                prepared.append(
+                    Record(loc, lastmod, attrs['changefreq'], attrs['priority'])
+                )
         except AttributeError as exc:
             msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n'\
-                  f'loc = {attrs["loc"]} and/or lastmod = {attrs.get("lastmod")}'
+                  f'loc_attr = {attrs["loc_attr"]} and/or lastmod_attr = {attrs.get("lastmod_attr")}'
             self.log.warning(msg)
             raise AttributeError(msg) from exc
 
