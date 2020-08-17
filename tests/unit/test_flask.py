@@ -51,7 +51,7 @@ def test_flask_build_static(flask_map):
     """Tests a static file creation"""
     filename = 'static.xml'
     flask_map.filename = filename
-    flask_map.add_rule('/api', ORMModel, lastmod='created')
+    flask_map.add_rule('/api', ORMModel, lastmod_attr='created')
     flask_map.build_static(TEST_FOLDER)
     file = os.path.join(TEST_FOLDER, filename)
     assert os.path.exists(file)

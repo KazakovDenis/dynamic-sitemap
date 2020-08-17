@@ -24,10 +24,11 @@ Basic example with some Models:
     app = Framework(__name__)
     sitemap = FrameworkSitemap(app, 'https://mysite.com', orm='sqlalchemy')
     sitemap.config.IGNORED.update(['/edit', '/upload'])
-    sitemap.config.TEMPLATE_FOLDER = ['app', 'templates']
+    sitemap.config.TEMPLATE_FOLDER = 'templates'
     sitemap.update()
-    sitemap.add_rule('/app', Post, lastmod='created')
-    sitemap.add_rule('/app/tag', Tag, priority=0.4)
+    sitemap.add_elem('/faq', changefreq='monthly', priority=0.4)
+    sitemap.add_rule('/blog', Post, lastmod_attr='created', priority=1.0)
+    sitemap.add_rule('/blog/tag', Tag, changefreq='daily')
 
 IGNORED has a priority over add_rule. Also you can set configurations from your class:
 
@@ -41,7 +42,8 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
         LOGGER = sm_logger
 
     sitemap = FrameworkSitemap(app, 'https://myshop.org', config_obj=Config)
-    sitemap.add_rule('/goods', Product, slug='id', lastmod='updated')
+    sitemap.add_elem('/about', changefreq='monthly', priority=0.4)
+    sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
 
 Moreover you can get a static file by using:
     sitemap.build_static()
@@ -185,38 +187,38 @@ class SitemapMeta(metaclass=ABCMeta):
         if config_obj or not init:
             self._copy_template()
 
-    def add_elem(self, path: str, lastmod: str = None, changefreg: str = None, priority: float = None):
+    def add_elem(self, path: str, lastmod: str = None, changefreq: str = None, priority: float = None):
         """Adds a record to a sitemap according to the protocol https://www.sitemaps.org/protocol.html
 
         :param path: a part of URL, path to a page, should starts with a leading slash
         :param lastmod: a timestamp of last changes
-        :param changefreg: how often this URL changes (daily, weekly, etc.)
+        :param changefreq: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """
-        self.validate_tags(loc=path, lastmod=lastmod, changefreg=changefreg, priority=priority)
+        self.validate_tags(loc=path, lastmod=lastmod, changefreq=changefreq, priority=priority)
         self._static_data.append(
-            Record(loc=urljoin(self.url, path), lastmod=lastmod, changefreg=changefreg, priority=priority)
+            Record(loc=urljoin(self.url, path), lastmod=lastmod, changefreq=changefreq, priority=priority)
         )
 
-    def add_rule(self, path: str, model, loc: str = 'slug', lastmod: str = None,
-                 changefreg: str = None, priority: float = None):
+    def add_rule(self, path: str, model, loc_attr: str = 'slug', lastmod_attr: str = None,
+                 changefreq: str = None, priority: float = None):
         """Adds a rule to the builder to generate urls by a template using models of an app
         according to the protocol https://www.sitemaps.org/protocol.html
 
         :param path: a part of URI is used to get a page generated through a model
         :param model: a model of an app that has a slug, e.g. an instance of SQLAlchemy.Model
-        :param loc: an attribute of this model which is used to generate URL
-        :param lastmod: an attribute of this model which is an instance of the datetime object
-        :param changefreg: how often this URL changes (daily, weekly, etc.)
+        :param loc_attr: an attribute of this model which is used to generate URL
+        :param lastmod_attr: an attribute of this model which is an instance of the datetime object
+        :param changefreq: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """
-        assert loc, 'Set in the "loc" parameter your model\'s attribute used in a URL such as "slug"'
+        assert loc_attr, 'Set in the "loc" parameter your model\'s attribute used in a URL such as "slug"'
         priority = round(priority or self.config.get('CONTENT_PRIORITY', 0.0), 1)
-        self.validate_tags(loc=path, changefreg=changefreg, priority=priority)
+        self.validate_tags(loc=path, changefreq=changefreq, priority=priority)
 
         self._models[path] = PathModel(
             model=model,
-            attrs={'loc': loc, 'lastmod':  lastmod, 'changefreg':  changefreg, 'priority':  priority or None}
+            attrs={'loc': loc_attr, 'lastmod':  lastmod_attr, 'changefreq':  changefreq, 'priority':  priority or None}
         )
 
     def build_static(self, path: DirPathType = None):
@@ -288,7 +290,7 @@ class SitemapMeta(metaclass=ABCMeta):
         """The method to override. Should return an iterator of URL rules"""
         pass
 
-    def validate_tags(self, loc=None, lastmod=None, changefreg=None, priority=None):
+    def validate_tags(self, loc=None, lastmod=None, changefreq=None, priority=None):
         """Validates sitemap's XML tags values"""
         if loc:
             assert urlparse(loc).path, '"loc" should have leading slash'
@@ -297,9 +299,9 @@ class SitemapMeta(metaclass=ABCMeta):
             # not implemented yet
             pass
 
-        if changefreg:
-            assert isinstance(changefreg, str), '"changefreg" should be a string'
-            assert changefreg.casefold() in CHANGE_FREQ, '"changefreg" should be one of: ' + ', '.join(CHANGE_FREQ)
+        if changefreq:
+            assert isinstance(changefreq, str), '"changefreq" should be a string'
+            assert changefreq.casefold() in CHANGE_FREQ, '"changefreq" should be one of: ' + ', '.join(CHANGE_FREQ)
 
         if priority:
             priority = priority or self.config.CONTENT_PRIORITY
@@ -376,9 +378,9 @@ class SitemapMeta(metaclass=ABCMeta):
                 replaced = self._replace_patterns(uri, splitted)
                 self._dynamic_data.extend(replaced)
             else:
-                # todo: changefreg
+                # todo: changefreq
                 self._dynamic_data.append(
-                    Record(loc=self.url + uri, lastmod=self.start, changefreg=None, priority=self.config.ALTER_PRIORITY)
+                    Record(loc=self.url + uri, lastmod=self.start, changefreq=None, priority=self.config.ALTER_PRIORITY)
                 )
 
         self.log.debug('Data for the sitemap is ready')
@@ -410,7 +412,7 @@ class SitemapMeta(metaclass=ABCMeta):
                     if isinstance(lastmod, datetime):
                         lastmod = lastmod.strftime(self.time_fmt)
 
-                prepared.append(Record(loc=loc, lastmod=lastmod, changefreg=None, priority=attrs['priority']))
+                prepared.append(Record(loc=loc, lastmod=lastmod, changefreq=None, priority=attrs['priority']))
         except AttributeError as exc:
             msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n'\
                   f'loc = {attrs["loc"]} and/or lastmod = {attrs.get("lastmod")}'

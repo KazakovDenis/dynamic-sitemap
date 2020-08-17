@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 
 PathModel = namedtuple('PathModel', 'model attrs')
-Record = namedtuple('Record', 'loc lastmod changefreg priority')
+Record = namedtuple('Record', 'loc lastmod changefreq priority')
 _Row = namedtuple('Row', 'slug lastmod')
 
 _QUERIES = {

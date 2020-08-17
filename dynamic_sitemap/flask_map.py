@@ -22,8 +22,9 @@ Basic example with some Models:
     sitemap.config.IGNORED.update(['/edit', '/upload'])
     sitemap.config.ALTER_PRIORITY = 0.1
     sitemap.update()
-    sitemap.add_rule('/app', Post, lastmod='created')
-    sitemap.add_rule('/app/tag', Tag, priority=0.4)
+    sitemap.add_elem('/faq', changefreq='monthly', priority=0.4)
+    sitemap.add_rule('/blog', Post, lastmod_attr='created', priority=1.0)
+    sitemap.add_rule('/blog/tag', Tag, changefreq='daily')
 
 IGNORED has a priority over add_rule. Also you can set configurations from your class:
 
@@ -37,7 +38,7 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
         LOGGER = sm_logger
 
     sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
-    sitemap.add_rule('/goods', Product, slug='id', lastmod='updated')
+    sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
 
 Moreover you can get a static file by using:
     sitemap.build_static()
