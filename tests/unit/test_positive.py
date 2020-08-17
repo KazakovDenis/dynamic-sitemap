@@ -25,7 +25,7 @@ def test_default_create_map(default_map, config):
 def test_default_add_rule(default_map, priority):
     """Tests a rule creation"""
     default_map.add_rule('/app', ORMModel, priority=priority, lastmod='updated')
-    obj = default_map.models['/app']
+    obj = default_map._models['/app']
     assert obj.model == ORMModel
     assert isinstance(obj.attrs['loc'], str)
     assert isinstance(obj.attrs['lastmod'], str)
@@ -71,30 +71,30 @@ def test_default_exclude(default_map, debug):
 
 def test_default_prepare_data_static(default_map):
     """Tests preparing data by pattern"""
-    assert not default_map.data
+    assert not default_map._dynamic_data
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
     default_map.config.IGNORED.update(DYNAMIC_URLS)
     default_map._prepare_data()
-    assert TEST_URL in default_map.data[-1].loc
-    assert TEST_DATE_STR in default_map.data[-1].lastmod
-    assert default_map.data[0].priority == 1.0
-    assert default_map.data[-1].priority == 0.3
+    assert TEST_URL in default_map._dynamic_data[-1].loc
+    assert TEST_DATE_STR in default_map._dynamic_data[-1].lastmod
+    assert default_map._dynamic_data[0].priority == 1.0
+    assert default_map._dynamic_data[-1].priority == 0.3
 
 
 def test_default_prepare_data_dynamic(default_map):
     """Tests preparing data by pattern"""
-    assert not default_map.data
+    assert not default_map._dynamic_data
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
     default_map.config.IGNORED = {'/api', '/blog'}
     default_map.add_rule('/ign', ORMModel, lastmod='updated', priority=0.91)
     default_map._prepare_data()
-    assert TEST_URL in default_map.data[-1].loc
-    assert TEST_DATE_STR in default_map.data[-1].lastmod
-    assert default_map.data[0].priority == 1.0
-    assert default_map.data[1].priority == 0.3
-    assert default_map.data[-1].priority == 0.9
+    assert TEST_URL in default_map._dynamic_data[-1].loc
+    assert TEST_DATE_STR in default_map._dynamic_data[-1].lastmod
+    assert default_map._dynamic_data[0].priority == 1.0
+    assert default_map._dynamic_data[1].priority == 0.3
+    assert default_map._dynamic_data[-1].priority == 0.9
 
 
 @pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x'])
@@ -133,7 +133,7 @@ def test_helpers_model(local_model):
 def test_helpers_model_add_rule(default_map, local_model):
     """Tests add_rule with helpers.Model"""
     default_map.add_rule('/path', local_model, loc='slug_attr', lastmod='lastmod_attr', priority=0.91)
-    path_model = default_map.models['/path']
+    path_model = default_map._models['/path']
     assert path_model.attrs['loc'] == 'slug_attr'
     assert path_model.attrs['lastmod'] == 'lastmod_attr'
     assert path_model.attrs['priority'] == 0.9

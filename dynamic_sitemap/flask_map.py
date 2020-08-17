@@ -77,7 +77,7 @@ class FlaskSitemap(SitemapMeta):
         from flask import make_response, render_template, request
 
         self._prepare_data()
-        template = render_template('sitemap.xml', data=self.data)
+        template = render_template('sitemap.xml', data=self._dynamic_data)
         response = make_response(template)
         response.headers['Content-Type'] = self.content_type
         self.log.info(f'[{request.method}] Sitemap requested by {request.remote_addr}')

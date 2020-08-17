@@ -55,6 +55,7 @@ from pathlib import Path
 from re import search, split
 from shutil import copyfile
 from typing import TypeVar, Union, List
+from urllib.parse import urljoin
 from xml.etree import ElementTree as ET
 
 from .helpers import *
@@ -96,6 +97,7 @@ class SitemapConfig(dict):
     LOGGER: Logger = None
     IGNORED: set = {'/admin', '/static', }
     SOURCE_FILE: str = join(EXTENSION_ROOT, 'templates', 'jinja2.xml')
+    INDEX_CHANGES: str = None
     INDEX_PRIORITY: float = None
     CONTENT_PRIORITY: float = None
     ALTER_PRIORITY: float = None
@@ -157,8 +159,9 @@ class SitemapMeta(metaclass=ABCMeta):
         self.log = None
 
         # containers
-        self.data = []                               # to store Record instances
-        self.models = {}                             # to store Models added by add_rule
+        self._models = {}                             # to store Models added by add_rule
+        self._static_data = []                        # to store Record instances added by add_elem
+        self._dynamic_data = []                       # to store Record instances added from models
 
         self.update(config_obj, init=True)
 
@@ -185,12 +188,15 @@ class SitemapMeta(metaclass=ABCMeta):
     def add_elem(self, path: str, lastmod: str = None, changefreg: str = None, priority: float = None):
         """Adds a record to a sitemap according to the protocol https://www.sitemaps.org/protocol.html
 
-        :param path: URI of a page
+        :param path: a part of URL, path to a page, should starts with a leading slash
         :param lastmod: a timestamp of last changes
         :param changefreg: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """
-        self.validate_tags(changefreg=changefreg, priority=priority)
+        self.validate_tags(loc=path, lastmod=lastmod, changefreg=changefreg, priority=priority)
+        self._static_data.append(
+            Record(loc=urljoin(self.url, path), lastmod=lastmod, changefreg=changefreg, priority=priority)
+        )
 
     def add_rule(self, path: str, model, loc: str = 'slug', lastmod: str = None,
                  changefreg: str = None, priority: float = None):
@@ -199,16 +205,16 @@ class SitemapMeta(metaclass=ABCMeta):
 
         :param path: a part of URI is used to get a page generated through a model
         :param model: a model of an app that has a slug, e.g. an instance of SQLAlchemy.Model
-        :param loc: a slug attribute of this model
+        :param loc: an attribute of this model which is used to generate URL
         :param lastmod: an attribute of this model which is an instance of the datetime object
         :param changefreg: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """
         assert loc, 'Set in the "loc" parameter your model\'s attribute used in a URL such as "slug"'
         priority = round(priority or self.config.get('CONTENT_PRIORITY', 0.0), 1)
-        self.validate_tags(changefreg=changefreg, priority=priority)
+        self.validate_tags(loc=path, changefreg=changefreg, priority=priority)
 
-        self.models[path] = PathModel(
+        self._models[path] = PathModel(
             model=model,
             attrs={'loc': loc, 'lastmod':  lastmod, 'changefreg':  changefreg, 'priority':  priority or None}
         )
@@ -229,7 +235,7 @@ class SitemapMeta(metaclass=ABCMeta):
         url_set = ET.Element('urlset', XML_ATTRS)
         sub = ET.SubElement
 
-        for record in self.data:
+        for record in self._dynamic_data:
             url = sub(url_set, "url")
             sub(url, "loc").text = record.loc
 
@@ -283,7 +289,7 @@ class SitemapMeta(metaclass=ABCMeta):
         pass
 
     def validate_tags(self, loc=None, lastmod=None, changefreg=None, priority=None):
-        """Validates sitemap's XML tag attributes"""
+        """Validates sitemap's XML tags values"""
         if loc:
             assert urlparse(loc).path, '"loc" should have leading slash'
 
@@ -348,8 +354,18 @@ class SitemapMeta(metaclass=ABCMeta):
 
     def _prepare_data(self):
         """Prepares data to be used by builder"""
-        self.data.clear()
-        self.data.append(Record(loc=self.url, lastmod=self.start, changefreg=None, priority=self.config.INDEX_PRIORITY))
+        self._dynamic_data.clear()
+        default_index = Record(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
+
+        # adding index page
+        if not self._static_data:
+            self._dynamic_data.append(default_index)
+        else:
+            self._static_data.sort(key=lambda r: len(r.loc))
+            if self._static_data[0].loc != self.url:
+                self._dynamic_data.insert(0, default_index)
+
+        self._dynamic_data.extend(self._static_data)
         uris = self._exclude()
 
         for uri in uris:
@@ -358,9 +374,10 @@ class SitemapMeta(metaclass=ABCMeta):
 
             if len(splitted) > 1:
                 replaced = self._replace_patterns(uri, splitted)
-                self.data.extend(replaced)
+                self._dynamic_data.extend(replaced)
             else:
-                self.data.append(
+                # todo: changefreg
+                self._dynamic_data.append(
                     Record(loc=self.url + uri, lastmod=self.start, changefreg=None, priority=self.config.ALTER_PRIORITY)
                 )
 
@@ -376,10 +393,10 @@ class SitemapMeta(metaclass=ABCMeta):
 
         prefix, suffix = splitted[0], splitted[-1]
 
-        assert self.models.get(prefix), f"Your should add '{uri}' or it's part to ignored or "\
-                                        f"add a new rule with path '{prefix}'"
+        assert self._models.get(prefix), f"Your should add '{uri}' or it's part to ignored or "\
+                                         f"add a new rule with path '{prefix}'"
 
-        model, attrs = self.models.get(prefix)
+        model, attrs = self._models.get(prefix)
         prepared = []
 
         try:
