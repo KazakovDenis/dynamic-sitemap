@@ -65,6 +65,7 @@ ConfType = Union[type, 'SitemapConfig']
 DirPathType = Union[str, tuple, list]
 
 EXTENSION_ROOT = Path(__file__).parent.absolute()
+
 XML_ATTRS = {
     'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
     'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
@@ -72,8 +73,10 @@ XML_ATTRS = {
         'http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd'
 }
 
+CHANGE_FREQ = 'always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'
 
-class SitemapConfig:
+
+class SitemapConfig(dict):
     """A class to set configurations
 
     DEBUG - if True sets up logging to DEBUG level
@@ -123,10 +126,10 @@ class SitemapConfig:
         setattr(self, key, value)
 
     def __getitem__(self, item):
-        return self.__dict__.get(item)
+        return getattr(self, item)
 
     def __repr__(self):
-        return '<Sitemap configurations object>'
+        return f'<Sitemap configurations object at {id(self)}>'
 
 
 class SitemapMeta(metaclass=ABCMeta):
@@ -159,22 +162,56 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.update(config_obj, init=True)
 
-    def add_rule(self, path: str, model, slug='slug', lastmod: str = None, priority: float = None):
+    def update(self, config_obj: ConfType = None, init: bool = False):
+        """Updates sitemap instance configuration. Use it if you haven't passed config to __init__.
+
+        :param config_obj: SitemapConfig instance or your own Config class
+        :param init: True if method is called during initialization
+
+        Example:
+            sitemap = FrameworkSitemap(app, 'http://site.com')
+            sitemap.config.TEMPLATE_FOLDER = os.path.join('extensions', 'templates')
+            sitemap.update()
+        """
+        if config_obj:
+            self.config.from_object(config_obj)
+
+        self.log = self.get_logger()
+        self.rules = self.get_rules()
+
+        if config_obj or not init:
+            self._copy_template()
+
+    def add_elem(self, path: str, lastmod: str = None, changefreg: str = None, priority: float = None):
+        """Adds a record to a sitemap according to the protocol https://www.sitemaps.org/protocol.html
+
+        :param path: URI of a page
+        :param lastmod: a timestamp of last changes
+        :param changefreg: how often this URL changes (daily, weekly, etc.)
+        :param priority: a priority of URL to be set
+        """
+        self.validate_tags(changefreg=changefreg, priority=priority)
+
+    def add_rule(self, path: str, model, loc: str = 'slug', lastmod: str = None,
+                 changefreg: str = None, priority: float = None):
         """Adds a rule to the builder to generate urls by a template using models of an app
+        according to the protocol https://www.sitemaps.org/protocol.html
 
         :param path: a part of URI is used to get a page generated through a model
         :param model: a model of an app that has a slug, e.g. an instance of SQLAlchemy.Model
-        :param slug: a slug attribute of this model
+        :param loc: a slug attribute of this model
         :param lastmod: an attribute of this model which is an instance of the datetime object
+        :param changefreg: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """
-        assert slug, 'Set in the "slug" parameter your model\'s attribute used in a URL'
+        assert loc, 'Set in the "loc" parameter your model\'s attribute used in a URL such as "slug"'
+        priority = round(priority or self.config.get('CONTENT_PRIORITY', 0.0), 1)
+        self.validate_tags(changefreg=changefreg, priority=priority)
 
-        if priority:
-            priority = round(priority or self.config.CONTENT_PRIORITY, 1)
-            assert 0.0 < priority <= 1.0, 'Priority should be a float between 0.0 and 1.0'
-
-        self.models[path] = PathModel(model=model, attrs={'slug': slug, 'lastmod':  lastmod, 'priority':  priority})
+        self.models[path] = PathModel(
+            model=model,
+            attrs={'loc': loc, 'lastmod':  lastmod, 'changefreg':  changefreg, 'priority':  priority or None}
+        )
 
     def build_static(self, path: DirPathType = None):
         """Builds an XML file. The system user of the app should have rights to write files
@@ -212,26 +249,6 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.log.info('Static sitemap is ready')
 
-    def update(self, config_obj: ConfType = None, init: bool = False):
-        """Updates sitemap instance configuration. Use it if you haven't passed config to __init__.
-
-        :param config_obj: SitemapConfig instance or your own Config class
-        :param init: True if method is called during initialization
-
-        Example:
-            sitemap = FrameworkSitemap(app, 'http://site.com')
-            sitemap.config.TEMPLATE_FOLDER = os.path.join('extensions', 'templates')
-            sitemap.update()
-        """
-        if config_obj:
-            self.config.from_object(config_obj)
-
-        self.log = self.get_logger()
-        self.rules = self.get_rules()
-
-        if config_obj or not init:
-            self._copy_template()
-
     def get_logger(self) -> Logger:
         """Returns an instance of logging.Logger (set in config)"""
         if self.config.LOGGER:
@@ -264,6 +281,23 @@ class SitemapMeta(metaclass=ABCMeta):
     def get_rules(self) -> iter:
         """The method to override. Should return an iterator of URL rules"""
         pass
+
+    def validate_tags(self, loc=None, lastmod=None, changefreg=None, priority=None):
+        """Validates sitemap's XML tag attributes"""
+        if loc:
+            assert urlparse(loc).path, '"loc" should have leading slash'
+
+        if lastmod:
+            # not implemented yet
+            pass
+
+        if changefreg:
+            assert isinstance(changefreg, str), '"changefreg" should be a string'
+            assert changefreg.casefold() in CHANGE_FREQ, '"changefreg" should be one of: ' + ', '.join(CHANGE_FREQ)
+
+        if priority:
+            priority = priority or self.config.CONTENT_PRIORITY
+            assert 0.0 < priority <= 1.0, 'Priority should be a float between 0.0 and 1.0'
 
     @abstractmethod
     def view(self, *args, **kwargs) -> HTTPResponse:
@@ -315,7 +349,7 @@ class SitemapMeta(metaclass=ABCMeta):
     def _prepare_data(self):
         """Prepares data to be used by builder"""
         self.data.clear()
-        self.data.append(Record(self.url, self.start, self.config.INDEX_PRIORITY))
+        self.data.append(Record(loc=self.url, lastmod=self.start, changefreg=None, priority=self.config.INDEX_PRIORITY))
         uris = self._exclude()
 
         for uri in uris:
@@ -326,7 +360,9 @@ class SitemapMeta(metaclass=ABCMeta):
                 replaced = self._replace_patterns(uri, splitted)
                 self.data.extend(replaced)
             else:
-                self.data.append(Record(self.url + uri, self.start, self.config.ALTER_PRIORITY))
+                self.data.append(
+                    Record(loc=self.url + uri, lastmod=self.start, changefreg=None, priority=self.config.ALTER_PRIORITY)
+                )
 
         self.log.debug('Data for the sitemap is ready')
 
@@ -348,7 +384,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
         try:
             for record in eval(self.query):
-                uri = '/' + getattr(record, attrs['slug']) if attrs['slug'] else ''
+                uri = '/' + getattr(record, attrs['loc']) if attrs['loc'] else ''
                 loc = f'{self.url}{prefix}{uri}{suffix}'
                 lastmod = None
 
@@ -357,10 +393,10 @@ class SitemapMeta(metaclass=ABCMeta):
                     if isinstance(lastmod, datetime):
                         lastmod = lastmod.strftime(self.time_fmt)
 
-                prepared.append(Record(loc, lastmod, attrs['priority']))
+                prepared.append(Record(loc=loc, lastmod=lastmod, changefreg=None, priority=attrs['priority']))
         except AttributeError as exc:
             msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n'\
-                  f'slug = {attrs["slug"]} and/or lastmod = {attrs.get("lastmod")}'
+                  f'loc = {attrs["loc"]} and/or lastmod = {attrs.get("lastmod")}'
             self.log.warning(msg)
             raise AttributeError(msg) from exc
 

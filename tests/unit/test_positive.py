@@ -27,7 +27,7 @@ def test_default_add_rule(default_map, priority):
     default_map.add_rule('/app', ORMModel, priority=priority, lastmod='updated')
     obj = default_map.models['/app']
     assert obj.model == ORMModel
-    assert isinstance(obj.attrs['slug'], str)
+    assert isinstance(obj.attrs['loc'], str)
     assert isinstance(obj.attrs['lastmod'], str)
     assert isinstance(obj.attrs['priority'], (float, int))
 
@@ -64,7 +64,7 @@ def test_default_copy_template(default_map, request):
 def test_default_exclude(default_map, debug):
     """Tests that ignored urls was excluded"""
     default_map.config.DEBUG = debug
-    default_map.config.IGNORED = ['/ign']
+    default_map.config.IGNORED.update({'/ign'})
     for url in default_map._exclude():
         assert 'ign' not in url
 
@@ -87,7 +87,7 @@ def test_default_prepare_data_dynamic(default_map):
     assert not default_map.data
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
-    default_map.config.IGNORED.remove('/ign/<slug>')
+    default_map.config.IGNORED = {'/api', '/blog'}
     default_map.add_rule('/ign', ORMModel, lastmod='updated', priority=0.91)
     default_map._prepare_data()
     assert TEST_URL in default_map.data[-1].loc
@@ -132,8 +132,8 @@ def test_helpers_model(local_model):
 
 def test_helpers_model_add_rule(default_map, local_model):
     """Tests add_rule with helpers.Model"""
-    default_map.add_rule('/path', local_model, slug='slug_attr', lastmod='lastmod_attr', priority=0.91)
+    default_map.add_rule('/path', local_model, loc='slug_attr', lastmod='lastmod_attr', priority=0.91)
     path_model = default_map.models['/path']
-    assert path_model.attrs['slug'] == 'slug_attr'
+    assert path_model.attrs['loc'] == 'slug_attr'
     assert path_model.attrs['lastmod'] == 'lastmod_attr'
     assert path_model.attrs['priority'] == 0.9
