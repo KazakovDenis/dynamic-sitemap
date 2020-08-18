@@ -185,16 +185,17 @@ class SitemapMeta(metaclass=ABCMeta):
         self.log = None
 
         # containers
+        self._records = ()                            # to store prepared Records
         self._models = {}                             # to store Models added by add_rule
         self._static_data = set()                     # to store Record instances added by add_elem
-        self._dynamic_data = set()                    # to store Record instances added from models
 
         self.update(config_obj, init=True)
 
     @property
     def records(self):
         """Returns records prepared to build sitemap"""
-        return sorted(self._dynamic_data, key=lambda r: len(r.loc))
+        self._records, records = tee(self._records)
+        return tuple(records)
 
     def update(self, config_obj: ConfType = None, init: bool = False):
         """Updates sitemap instance configuration. Use it if you haven't passed config to __init__.
@@ -271,7 +272,7 @@ class SitemapMeta(metaclass=ABCMeta):
         url_set = ET.Element('urlset', XML_ATTRS)
         sub = ET.SubElement
 
-        for record in self._dynamic_data:
+        for record in self.records:
             url = sub(url_set, "url")
             sub(url, "loc").text = record.loc
 
@@ -396,11 +397,11 @@ class SitemapMeta(metaclass=ABCMeta):
 
     def _prepare_data(self):
         """Prepares data to be used by builder"""
-        self._dynamic_data.clear()
-        self._dynamic_data.add(
+        dynamic_data = set()
+        dynamic_data.add(
             Record(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
         )
-        self._dynamic_data.update(self._static_data)
+        dynamic_data.update(self._static_data)
         uris = self._exclude()
 
         for uri in uris:
@@ -409,13 +410,14 @@ class SitemapMeta(metaclass=ABCMeta):
 
             if len(splitted) > 1:
                 replaced = self._replace_patterns(uri, splitted)
-                self._dynamic_data.update(replaced)
+                dynamic_data.update(replaced)
             else:
                 # todo: changefreq
-                self._dynamic_data.add(
+                dynamic_data.add(
                     Record(urljoin(self.url, uri), self.start, None, self.config.ALTER_PRIORITY)
                 )
 
+        self._records = iter(sorted(dynamic_data, key=lambda r: len(r.loc)))
         self.log.debug('Data for the sitemap is ready')
 
     def _replace_patterns(self, uri: str, splitted: List[str]) -> List[Record]:

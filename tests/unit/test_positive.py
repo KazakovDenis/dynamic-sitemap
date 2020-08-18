@@ -95,7 +95,7 @@ def test_default_exclude(default_map, debug):
 
 def test_default_prepare_data_static(default_map):
     """Tests preparing data by pattern"""
-    assert not default_map._dynamic_data
+    assert not default_map.records
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
     default_map.config.IGNORED.update(DYNAMIC_URLS)
@@ -108,7 +108,7 @@ def test_default_prepare_data_static(default_map):
 
 def test_default_prepare_data_dynamic(default_map):
     """Tests preparing data by pattern"""
-    assert not default_map._dynamic_data
+    assert not default_map.records
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
     default_map.config.IGNORED = {'/api', '/blog'}
