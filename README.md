@@ -14,12 +14,6 @@ Already implemented:
 ```shell script
 pip install dynamic-sitemap
 ```
-or
-- as a git submodule
-```shell script
-git submodule add -b master --name sitemap https://github.com/KazakovDenis/dynamic-sitemap path/to/app/sitemap
-```
-  
   
 ## Usage
 "Hello world" example:
