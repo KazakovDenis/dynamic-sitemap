@@ -99,6 +99,9 @@ class Record:
     def __hash__(self):
         return hash(self.loc)
 
+    def __repr__(self):
+        return f'<Record loc="{self.loc}">'
+
 
 class SitemapConfig(dict):
     """A class to set configurations
@@ -183,10 +186,15 @@ class SitemapMeta(metaclass=ABCMeta):
 
         # containers
         self._models = {}                             # to store Models added by add_rule
-        self._static_data = []                        # to store Record instances added by add_elem
-        self._dynamic_data = []                       # to store Record instances added from models
+        self._static_data = set()                     # to store Record instances added by add_elem
+        self._dynamic_data = set()                    # to store Record instances added from models
 
         self.update(config_obj, init=True)
+
+    @property
+    def records(self):
+        """Returns records prepared to build sitemap"""
+        return sorted(self._dynamic_data, key=lambda r: len(r.loc))
 
     def update(self, config_obj: ConfType = None, init: bool = False):
         """Updates sitemap instance configuration. Use it if you haven't passed config to __init__.
@@ -217,7 +225,7 @@ class SitemapMeta(metaclass=ABCMeta):
         :param priority: a priority of URL to be set
         """
         self.validate_tags(loc=path, lastmod=lastmod, changefreq=changefreq, priority=priority)
-        self._static_data.append(
+        self._static_data.add(
             Record(loc=urljoin(self.url, path), lastmod=lastmod, changefreq=changefreq, priority=priority)
         )
 
@@ -389,17 +397,10 @@ class SitemapMeta(metaclass=ABCMeta):
     def _prepare_data(self):
         """Prepares data to be used by builder"""
         self._dynamic_data.clear()
-        default_index = Record(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
-
-        # adding index page
-        if not self._static_data:
-            self._dynamic_data.append(default_index)
-        else:
-            self._static_data.sort(key=lambda r: len(r.loc))
-            if self._static_data[0].loc != self.url:
-                self._dynamic_data.insert(0, default_index)
-
-        self._dynamic_data.extend(self._static_data)
+        self._dynamic_data.add(
+            Record(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
+        )
+        self._dynamic_data.update(self._static_data)
         uris = self._exclude()
 
         for uri in uris:
@@ -408,10 +409,10 @@ class SitemapMeta(metaclass=ABCMeta):
 
             if len(splitted) > 1:
                 replaced = self._replace_patterns(uri, splitted)
-                self._dynamic_data.extend(replaced)
+                self._dynamic_data.update(replaced)
             else:
                 # todo: changefreq
-                self._dynamic_data.append(
+                self._dynamic_data.add(
                     Record(urljoin(self.url, uri), self.start, None, self.config.ALTER_PRIORITY)
                 )
 

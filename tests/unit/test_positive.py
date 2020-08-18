@@ -26,10 +26,11 @@ def test_default_create_map(default_map, config):
 
 def test_default_add_elem(default_map):
     """Tests a elem creation"""
+    default_map.add_elem('/index', lastmod='2020-01-01', changefreq='weekly', priority=0.8)
     default_map.add_elem('/index', lastmod='2020-02-02', changefreq='daily', priority=1)
-    default_map.add_elem('/about', lastmod='2020-02-02', changefreq='daily', priority=1)
-    rec = default_map._static_data[1]
-    assert rec.loc == urljoin(TEST_URL, '/about')
+    assert len(default_map._static_data) == 1
+    rec = default_map._static_data.pop()
+    assert rec.loc == urljoin(TEST_URL, '/index')
     assert isinstance(rec.lastmod, str)
     assert rec.changefreq in CHANGE_FREQ
     assert isinstance(rec.priority, (float, int))
@@ -99,10 +100,10 @@ def test_default_prepare_data_static(default_map):
     default_map.config.ALTER_PRIORITY = 0.3
     default_map.config.IGNORED.update(DYNAMIC_URLS)
     default_map._prepare_data()
-    assert TEST_URL in default_map._dynamic_data[-1].loc
-    assert TEST_DATE_STR in default_map._dynamic_data[-1].lastmod
-    assert default_map._dynamic_data[0].priority == 1.0
-    assert default_map._dynamic_data[-1].priority == 0.3
+    assert TEST_URL in default_map.records[-1].loc
+    assert TEST_DATE_STR in default_map.records[-1].lastmod
+    assert default_map.records[0].priority == 1.0
+    assert default_map.records[-1].priority == 0.3
 
 
 def test_default_prepare_data_dynamic(default_map):
@@ -113,11 +114,11 @@ def test_default_prepare_data_dynamic(default_map):
     default_map.config.IGNORED = {'/api', '/blog'}
     default_map.add_rule('/ign', ORMModel, lastmod_attr='updated', priority=0.91)
     default_map._prepare_data()
-    assert TEST_URL in default_map._dynamic_data[-1].loc
-    assert TEST_DATE_STR in default_map._dynamic_data[-1].lastmod
-    assert default_map._dynamic_data[0].priority == 1.0
-    assert default_map._dynamic_data[1].priority == 0.3
-    assert default_map._dynamic_data[-1].priority == 0.9
+    assert TEST_URL in default_map.records[-1].loc
+    assert TEST_DATE_STR in default_map.records[-1].lastmod
+    assert default_map.records[0].priority == 1.0
+    assert default_map.records[1].priority == 0.3
+    assert default_map.records[-1].priority == 0.9
 
 
 @pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x'])
