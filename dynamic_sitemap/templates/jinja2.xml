@@ -9,6 +9,9 @@
         {% if record.lastmod %}
         <lastmod>{{ record.lastmod }}</lastmod>
         {% endif %}
+        {% if record.changefreq %}
+        <changefreq>{{ record.changefreq }}</changefreq>
+        {% endif %}
         {% if record.priority %}
         <priority>{{ record.priority }}</priority>
         {% endif %}

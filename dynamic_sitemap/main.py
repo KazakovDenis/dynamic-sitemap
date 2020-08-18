@@ -249,6 +249,9 @@ class SitemapMeta(metaclass=ABCMeta):
             if record.lastmod:
                 sub(url, "lastmod").text = record.lastmod
 
+            if record.changefreq:
+                sub(url, "changefreq").text = record.changefreq
+
             if record.priority:
                 sub(url, "priority").text = str(record.priority)
 
