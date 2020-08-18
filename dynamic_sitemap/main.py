@@ -79,6 +79,27 @@ XML_ATTRS = {
 CHANGE_FREQ = 'always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'
 
 
+class Record:
+    """A class representing an item of a sitemap"""
+
+    __slots__ = 'loc', 'lastmod', 'changefreq', 'priority'
+
+    def __init__(self, loc: str, lastmod: str = None, changefreq: str = None, priority: float = None):
+        self.loc = loc
+        self.lastmod = lastmod
+        self.changefreq = changefreq
+        self.priority = priority
+
+    def __eq__(self, other):
+        if isinstance(other, type(self)):
+            return self.loc == other.loc
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.loc)
+
+
 class SitemapConfig(dict):
     """A class to set configurations
 
