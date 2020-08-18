@@ -43,6 +43,21 @@ def test_default_add_rule_priority(default_map, priority, error):
         default_map.add_rule('/app', ORMModel, priority=priority)
 
 
+@pytest.mark.parametrize('loc', [None, '?arg1=50', TEST_URL])
+@pytest.mark.parametrize('lastmod', [None])    # todo
+@pytest.mark.parametrize('changefreq', [None, True, 'everyday'])
+@pytest.mark.parametrize('priority', [None, -1, 5, '1'])
+def test_default_validate_tags(default_map, loc, lastmod, changefreq, priority):
+    """Tests how validation works
+
+    'None' arguments is added to avoid situation another parameter raises AssertionError
+    assert not any - to avoid situation when every parameter is None
+    """
+    with pytest.raises(AssertionError):
+        default_map.validate_tags(loc=loc, lastmod=lastmod, changefreq=changefreq, priority=priority)
+        assert any([loc, lastmod, changefreq, priority])
+
+
 def test_default_copy_template_file_exists(request, default_map):
     """Tests exception which should be raised when sitemap.xml already exists"""
     def teardown():

@@ -298,19 +298,22 @@ class SitemapMeta(metaclass=ABCMeta):
     def validate_tags(self, loc=None, lastmod=None, changefreq=None, priority=None):
         """Validates sitemap's XML tags values"""
         if loc:
-            assert urlparse(loc).path, '"loc" should have leading slash'
+            assert urlparse(loc).path, 'A path is required in "loc"'
 
         if lastmod:
             # not implemented yet
             pass
 
         if changefreq:
-            assert isinstance(changefreq, str), '"changefreq" should be a string'
-            assert changefreq.casefold() in CHANGE_FREQ, '"changefreq" should be one of: ' + ', '.join(CHANGE_FREQ)
+            msg = '"changefreq" should be one of the following: ' + ', '.join(CHANGE_FREQ)
+            assert isinstance(changefreq, str), msg
+            assert changefreq.casefold() in CHANGE_FREQ, msg
 
         if priority:
             priority = priority or self.config.CONTENT_PRIORITY
-            assert 0.0 < priority <= 1.0, 'Priority should be a float between 0.0 and 1.0'
+            msg = 'Priority should be a float between 0.0 and 1.0'
+            assert isinstance(priority, (int, float)), msg
+            assert 0.0 < priority <= 1.0, msg
 
     @abstractmethod
     def view(self, *args, **kwargs) -> HTTPResponse:

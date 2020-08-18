@@ -1,10 +1,8 @@
-from datetime import datetime
 import os
-
 import pytest
 
-from dynamic_sitemap.helpers import Model
 from dynamic_sitemap import *
+from dynamic_sitemap.helpers import *
 from .mocks import *
 
 

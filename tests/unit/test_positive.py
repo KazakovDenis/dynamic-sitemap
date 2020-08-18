@@ -1,3 +1,6 @@
+from urllib.parse import urljoin
+
+from dynamic_sitemap.main import CHANGE_FREQ
 from ..conftest import *
 
 
@@ -21,6 +24,17 @@ def test_default_create_map(default_map, config):
     assert TEST_DATE_STR in default_map.start
 
 
+def test_default_add_elem(default_map):
+    """Tests a elem creation"""
+    default_map.add_elem('/index', lastmod='2020-02-02', changefreq='daily', priority=1)
+    default_map.add_elem('/about', lastmod='2020-02-02', changefreq='daily', priority=1)
+    rec = default_map._static_data[1]
+    assert rec.loc == urljoin(TEST_URL, '/about')
+    assert isinstance(rec.lastmod, str)
+    assert rec.changefreq in CHANGE_FREQ
+    assert isinstance(rec.priority, (float, int))
+
+
 @pytest.mark.parametrize('priority', [0.5, 0.733, 1])
 def test_default_add_rule(default_map, priority):
     """Tests a rule creation"""
@@ -30,6 +44,15 @@ def test_default_add_rule(default_map, priority):
     assert isinstance(obj.attrs['loc_attr'], str)
     assert isinstance(obj.attrs['lastmod_attr'], str)
     assert isinstance(obj.attrs['priority'], (float, int))
+
+
+@pytest.mark.parametrize('loc', ['/index', '/index/page?arg=50'])
+@pytest.mark.parametrize('lastmod', ['2020-01-01T01:01:01', '2020-02-02'])
+@pytest.mark.parametrize('changefreq', ['daily', 'weekly'])
+@pytest.mark.parametrize('priority', [0.5, 0.733, 1])
+def test_default_validate_tags(default_map, loc, lastmod, changefreq, priority):
+    """Tests a elem creation"""
+    default_map.validate_tags(loc=loc, lastmod=lastmod, changefreq=changefreq, priority=priority)
 
 
 def test_default_get_dynamic_rules(default_map):
