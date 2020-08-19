@@ -90,6 +90,22 @@ class Record:
         self.changefreq = changefreq
         self.priority = priority
 
+    def as_xml(self):
+        """Returns xml.etree.ElementTree element"""
+        element = ET.Element('url')
+        ET.SubElement(element, 'loc').text = self.loc
+
+        if self.lastmod:
+            ET.SubElement(element, 'lastmod').text = self.lastmod
+
+        if self.changefreq:
+            ET.SubElement(element, 'changefreq').text = self.changefreq
+
+        if self.priority:
+            ET.SubElement(element, 'priority').text = str(self.priority)
+
+        return element
+
     def __eq__(self, other):
         if isinstance(other, type(self)):
             return self.loc == other.loc
@@ -270,20 +286,9 @@ class SitemapMeta(metaclass=ABCMeta):
         self.log.info(f'Creating {fullname}...')
 
         url_set = ET.Element('urlset', XML_ATTRS)
-        sub = ET.SubElement
 
         for record in self.records:
-            url = sub(url_set, "url")
-            sub(url, "loc").text = record.loc
-
-            if record.lastmod:
-                sub(url, "lastmod").text = record.lastmod
-
-            if record.changefreq:
-                sub(url, "changefreq").text = record.changefreq
-
-            if record.priority:
-                sub(url, "priority").text = str(record.priority)
+            url_set.append(record.as_xml())
 
         tree = ET.ElementTree(url_set)
         try:
