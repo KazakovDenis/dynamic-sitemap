@@ -62,7 +62,18 @@ def test_default_get_dynamic_rules(default_map):
         assert '<' in url
 
 
-def test_default_get_logger(default_map):
+@pytest.mark.parametrize('logger, name', [
+    (None, 'sitemap'),
+    (Logger('test'), 'test')
+])
+def test_default_get_logger(default_map, logger, name):
+    """Tests setting a default logger"""
+    default_map.config.LOGGER = logger
+    log = default_map.get_logger()
+    assert log.name == name
+
+
+def test_default_logger_debug(default_map):
     """Tests a logger creation and debug level setup"""
     default_map.config.DEBUG = True
     default_map.get_logger()
