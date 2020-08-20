@@ -18,11 +18,11 @@ def test_config_set(default_map):
 
 # Base object tests
 @pytest.mark.parametrize('url, config, orm, error', [
-    (b'Wrong URL type', None, None, TypeError),
-    ('Wrong URL', None, None, ValueError),
-    (TEST_URL, 'Wrong config type', None, NotImplementedError),
-    (TEST_URL, None, b'Wrong ORM type', TypeError),
-    (TEST_URL, None, 'Unknown ORM', NotImplementedError),
+    pytest.param(b'Wrong URL type', None, None, TypeError, id='Wrong URL argument type'),
+    pytest.param('Wrong URL', None, None, ValueError, id='Wrong URL'),
+    pytest.param(TEST_URL, 'Wrong config type', None, NotImplementedError, id='Wrong config type'),
+    pytest.param(TEST_URL, None, b'Wrong ORM type', TypeError, id='Wrong ORM argument type'),
+    pytest.param(TEST_URL, None, 'Unknown ORM', NotImplementedError, id='Unknown ORM'),
 ])
 def test_default_create_map(url, orm, config, error):
     """Test exceptions while init"""
@@ -31,10 +31,10 @@ def test_default_create_map(url, orm, config, error):
 
 
 @pytest.mark.parametrize('priority, error', [
-    (5, AssertionError),
-    (-1, AssertionError),
-    ('0.5', TypeError),
-    ('high', TypeError)
+    pytest.param(5, AssertionError, id='Greater priority'),
+    pytest.param(-1, AssertionError, id='Negative priority'),
+    pytest.param('0.5', TypeError, id='String priority'),
+    pytest.param('high', TypeError, id='Wrong type priority')
 ])
 def test_default_add_rule_priority(default_map, priority, error):
     """Assertion error should be raised when priority is not in range 0.0-1.0.
@@ -79,9 +79,9 @@ def test_default_copy_template_no_permission(default_map):
 
 
 @pytest.mark.parametrize('folder, path, error', [
-    (None, None, AssertionError),
-    (WRONG_FOLDER, None, FileNotFoundError),
-    (None, WRONG_FOLDER, FileNotFoundError),
+    pytest.param(None, None, AssertionError, id='No folder set'),
+    pytest.param(WRONG_FOLDER, None, FileNotFoundError, id='Wrong folder in config'),
+    pytest.param(None, WRONG_FOLDER, FileNotFoundError, id='Wrong path in arguments'),
 ])
 def test_default_build_static(default_map, folder, path, error):
     """Tests raising exceptions with no or wrong path set"""
@@ -93,8 +93,8 @@ def test_default_build_static(default_map, folder, path, error):
 
 
 @pytest.mark.parametrize('slug, lastmod', [
-    ('no_such_attr', None),
-    ('slug', 'no_such_attr'),
+    pytest.param('no_such_attr', None, id='Wrong "loc" attribute'),
+    pytest.param('slug', 'no_such_attr', id='Wrong "lastmod" attribute'),
 ])
 def test_default_replace_patterns_no_attr(default_map, slug, lastmod):
     prefix = '/blog'

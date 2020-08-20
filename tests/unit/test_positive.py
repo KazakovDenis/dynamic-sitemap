@@ -63,8 +63,8 @@ def test_default_get_dynamic_rules(default_map):
 
 
 @pytest.mark.parametrize('logger, name', [
-    (None, 'sitemap'),
-    (Logger('test'), 'test')
+    pytest.param(None, 'sitemap', id='Default logger'),
+    pytest.param(Logger('test'), 'test', id='User logger')
 ])
 def test_default_get_logger(default_map, logger, name):
     """Tests setting a default logger"""
@@ -76,8 +76,10 @@ def test_default_get_logger(default_map, logger, name):
 def test_default_logger_debug(default_map):
     """Tests a logger creation and debug level setup"""
     default_map.config.DEBUG = True
-    default_map.get_logger()
-    assert default_map.log.level == 10
+    default_map.config.LOGGER = None
+    logger = default_map.get_logger()
+    assert logger.level == 10
+    assert logger.handlers[0].level == 10
 
 
 def test_default_copy_template(default_map, request):
@@ -102,6 +104,21 @@ def test_default_exclude(default_map, debug):
     default_map.config.IGNORED.update({'/ign'})
     for url in default_map._exclude():
         assert 'ign' not in url
+
+
+@pytest.mark.parametrize('result, records, cache_period, timestamp', [
+    pytest.param(False, [], None, datetime.now(), id='No data, cache disabled'),
+    pytest.param(False, [], 1, datetime.now(), id='No data, cache enabled'),
+    pytest.param(False, [1], None, datetime.now(), id='Data exists, cache disabled'),
+    pytest.param(False, [1], 1, datetime(2020, 1, 1), id='Data exists, cache enabled, time expired'),
+    pytest.param(True, [1], 1, datetime(2050, 1, 1), id='Data exists, cache enabled, time not expired')
+])
+def test_default_should_use_cache(default_map, result, records, cache_period, timestamp):
+    """Tests conditions to use cache"""
+    default_map.config.CACHE_PERIOD = cache_period
+    default_map._records = records
+    default_map._timestamp = timestamp
+    assert default_map._should_use_cache() == result
 
 
 def test_default_prepare_data_static(default_map):
