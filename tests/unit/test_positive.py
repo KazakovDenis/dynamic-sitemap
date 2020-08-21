@@ -1,7 +1,7 @@
 from urllib.parse import urljoin
 
 from dynamic_sitemap.config import validate_tags
-from dynamic_sitemap.main import CHANGE_FREQ
+from dynamic_sitemap.main import CHANGE_FREQ, Record
 from ..conftest import *
 
 
@@ -17,6 +17,16 @@ def test_config_from_obj(config, obj):
     config.from_object(obj)
     assert hasattr(config, 'TEST')
     assert config['ALTER_PRIORITY']
+
+
+def test_record():
+    """Tests Record object returns XML object"""
+    rec = Record(loc='/path', lastmod='2020-01-01', changefreq='daily', priority=0.7).as_xml()
+    children = rec.getchildren()
+    assert children[0].text == '/path'
+    assert children[1].text == '2020-01-01'
+    assert children[2].text == 'daily'
+    assert children[3].text == '0.7'
 
 
 # Base object tests
