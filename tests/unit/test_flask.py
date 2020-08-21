@@ -17,6 +17,7 @@ try:
     db = SQLAlchemy(FlaskApp)
 
 except ImportError:
+    Flask = SQLAlchemy = None
     pytestmark = pytest.mark.not_installed
 
 
@@ -51,7 +52,7 @@ def test_flask_build_static(flask_map):
     """Tests a static file creation"""
     filename = 'static.xml'
     flask_map.filename = filename
-    flask_map.add_rule('/api', ORMModel, lastmod_attr='created')
+    flask_map.add_rule('/api', ORMModel, loc_attr='slug', lastmod_attr='created')
     flask_map.build_static(TEST_FOLDER)
     file = os.path.join(TEST_FOLDER, filename)
     assert os.path.exists(file)

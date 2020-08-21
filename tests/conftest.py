@@ -2,7 +2,7 @@ import os
 import pytest
 
 from dynamic_sitemap import *
-from dynamic_sitemap.main import EXTENSION_ROOT
+from dynamic_sitemap.config import EXTENSION_ROOT
 from dynamic_sitemap.helpers import *
 from .mocks import *
 

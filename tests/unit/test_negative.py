@@ -1,3 +1,4 @@
+from dynamic_sitemap.config import validate_tags
 from ..conftest import *
 
 
@@ -40,11 +41,11 @@ def test_default_add_rule_priority(default_map, priority, error):
     """Assertion error should be raised when priority is not in range 0.0-1.0.
     TypeError should be raised when got non-numeric."""
     with pytest.raises(error):
-        default_map.add_rule('/app', ORMModel, priority=priority)
+        default_map.add_rule('/app', ORMModel, loc_attr='slug', priority=priority)
 
 
 @pytest.mark.parametrize('loc', [None, '?arg1=50', TEST_URL])
-@pytest.mark.parametrize('lastmod', [None])    # todo
+@pytest.mark.parametrize('lastmod', [None, 1, '01:23', '01-01-2020'])
 @pytest.mark.parametrize('changefreq', [None, True, 'everyday'])
 @pytest.mark.parametrize('priority', [None, -1, 5, '1'])
 def test_default_validate_tags(default_map, loc, lastmod, changefreq, priority):
@@ -54,7 +55,7 @@ def test_default_validate_tags(default_map, loc, lastmod, changefreq, priority):
     assert not any - to avoid situation when every parameter is None
     """
     with pytest.raises(AssertionError):
-        default_map.validate_tags(loc=loc, lastmod=lastmod, changefreq=changefreq, priority=priority)
+        validate_tags(loc=loc, lastmod=lastmod, changefreq=changefreq, priority=priority)
         assert any([loc, lastmod, changefreq, priority])
 
 
