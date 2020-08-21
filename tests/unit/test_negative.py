@@ -44,19 +44,32 @@ def test_default_add_rule_priority(default_map, priority, error):
         default_map.add_rule('/app', ORMModel, loc_attr='slug', priority=priority)
 
 
-@pytest.mark.parametrize('loc', [None, '?arg1=50', TEST_URL])
-@pytest.mark.parametrize('lastmod', [None, 1, '01:23', '01-01-2020'])
-@pytest.mark.parametrize('changefreq', [None, True, 'everyday'])
-@pytest.mark.parametrize('priority', [None, -1, 5, '1'])
-def test_default_validate_tags(default_map, loc, lastmod, changefreq, priority):
-    """Tests how validation works
-
-    'None' arguments is added to avoid situation another parameter raises AssertionError
-    assert not any - to avoid situation when every parameter is None
-    """
+@pytest.mark.parametrize('loc', [1, {1: 1}, '?arg1=50', TEST_URL])
+def test_default_validate_loc(default_map, loc):
+    """Tests how loc validation works"""
     with pytest.raises(AssertionError):
-        validate_tags(loc=loc, lastmod=lastmod, changefreq=changefreq, priority=priority)
-        assert any([loc, lastmod, changefreq, priority])
+        validate_tags(loc=loc)
+
+
+@pytest.mark.parametrize('lastmod', [*TRUE_INSTANCES, '01:23', '01-01-2020'])
+def test_default_validate_lastmod(default_map, lastmod):
+    """Tests how lastmod validation works"""
+    with pytest.raises(AssertionError):
+        validate_tags(lastmod=lastmod)
+
+
+@pytest.mark.parametrize('changefreq', TRUE_INSTANCES)
+def test_default_validate_changefreq(default_map, changefreq):
+    """Tests how changefreq validation works"""
+    with pytest.raises(AssertionError):
+        validate_tags(changefreq=changefreq)
+
+
+@pytest.mark.parametrize('priority', [-1, 5, '1'])
+def test_default_validate_priority(default_map, priority):
+    """Tests how priority validation works"""
+    with pytest.raises(AssertionError):
+        validate_tags(priority=priority)
 
 
 def test_default_copy_template_file_exists(request, default_map):

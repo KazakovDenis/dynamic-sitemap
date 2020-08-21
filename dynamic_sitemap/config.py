@@ -50,6 +50,7 @@ class Location(Parameter):
     @classmethod
     def validate(cls, value) -> str:
         if value is not None:
+            assert isinstance(value, str), cls.assert_msg
             assert urlparse(value).path, cls.assert_msg
         return value
 
