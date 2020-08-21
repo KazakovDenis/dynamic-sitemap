@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 
 __all__ = ('SitemapConfig', 'CHANGE_FREQ', 'ConfType', 'DirPathType', 'EXTENSION_ROOT',
-           'Location', 'LastModified', 'ChangeFrequency', 'Priority', 'validate_tags')
+           'Location', 'LastModified', 'ChangeFrequency', 'Priority', 'get_validated')
 
 
 ConfType = Union[type, 'SitemapConfig']
@@ -178,7 +178,7 @@ class SitemapConfig(dict):
         return f'<Sitemap configurations object at {id(self)}>'
 
 
-def validate_tags(loc=None, lastmod=None, changefreq=None, priority=None) -> dict:
+def get_validated(loc=None, lastmod=None, changefreq=None, priority=None) -> dict:
     """Validates sitemap's XML tags values"""
     result = {}
 

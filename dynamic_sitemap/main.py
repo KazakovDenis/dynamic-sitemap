@@ -182,7 +182,7 @@ class SitemapMeta(metaclass=ABCMeta):
         :param changefreq: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """
-        params = validate_tags(loc=path, lastmod=lastmod, changefreq=changefreq, priority=priority)
+        params = get_validated(loc=path, lastmod=lastmod, changefreq=changefreq, priority=priority)
         self._static_data.add(
             Record(loc=urljoin(self.url, params.pop('loc')), **params)
         )
@@ -200,7 +200,7 @@ class SitemapMeta(metaclass=ABCMeta):
         :param priority: a priority of URL to be set
         """
         priority = round(priority or 0.0, 1)
-        validate_tags(loc=path, changefreq=changefreq, priority=priority)
+        get_validated(loc=path, changefreq=changefreq, priority=priority)
 
         self._models[path] = PathModel(
             model=model,
@@ -405,7 +405,7 @@ class SitemapMeta(metaclass=ABCMeta):
                         lastmod = lastmod.strftime(self.time_fmt)
 
                 prepared.append(
-                    Record(**validate_tags(loc, lastmod, attrs['changefreq'], attrs['priority']))
+                    Record(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority']))
                 )
         except AttributeError as exc:
             msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n'\

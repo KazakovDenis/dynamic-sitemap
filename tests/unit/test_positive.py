@@ -1,6 +1,6 @@
 from urllib.parse import urljoin
 
-from dynamic_sitemap.config import validate_tags
+from dynamic_sitemap.config import get_validated
 from dynamic_sitemap.main import CHANGE_FREQ, Record
 from ..conftest import *
 
@@ -64,7 +64,7 @@ def test_default_add_rule(default_map, priority):
 @pytest.mark.parametrize('priority', [0.5, 0.733, 1])
 def test_default_validate_tags(default_map, loc, lastmod, changefreq, priority):
     """Tests a elem creation"""
-    validate_tags(loc=loc, lastmod=lastmod, changefreq=changefreq, priority=priority)
+    get_validated(loc=loc, lastmod=lastmod, changefreq=changefreq, priority=priority)
 
 
 def test_default_get_dynamic_rules(default_map):

@@ -1,4 +1,4 @@
-from dynamic_sitemap.config import validate_tags
+from dynamic_sitemap.config import get_validated
 from ..conftest import *
 
 
@@ -48,28 +48,28 @@ def test_default_add_rule_priority(default_map, priority, error):
 def test_default_validate_loc(default_map, loc):
     """Tests how loc validation works"""
     with pytest.raises(AssertionError):
-        validate_tags(loc=loc)
+        get_validated(loc=loc)
 
 
 @pytest.mark.parametrize('lastmod', [*TRUE_INSTANCES, '01:23', '01-01-2020'])
 def test_default_validate_lastmod(default_map, lastmod):
     """Tests how lastmod validation works"""
     with pytest.raises(AssertionError):
-        validate_tags(lastmod=lastmod)
+        get_validated(lastmod=lastmod)
 
 
 @pytest.mark.parametrize('changefreq', TRUE_INSTANCES)
 def test_default_validate_changefreq(default_map, changefreq):
     """Tests how changefreq validation works"""
     with pytest.raises(AssertionError):
-        validate_tags(changefreq=changefreq)
+        get_validated(changefreq=changefreq)
 
 
 @pytest.mark.parametrize('priority', [-1, 5, '1'])
 def test_default_validate_priority(default_map, priority):
     """Tests how priority validation works"""
     with pytest.raises(AssertionError):
-        validate_tags(priority=priority)
+        get_validated(priority=priority)
 
 
 def test_default_copy_template_file_exists(request, default_map):
