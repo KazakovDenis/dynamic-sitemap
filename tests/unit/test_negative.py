@@ -111,7 +111,7 @@ def test_default_build_static(default_map, folder, path, error):
     pytest.param('slug', 'no_such_attr', id='Wrong "lastmod" attribute'),
 ])
 def test_default_replace_patterns_no_attr(default_map, slug, lastmod):
-    prefix = '/blog'
+    prefix = '/blog/'
     default_map.add_rule(prefix, ORMModel, loc_attr=slug, lastmod_attr=lastmod)
     with pytest.raises(AttributeError):
         default_map._replace_patterns('', [prefix, ''])

@@ -51,7 +51,7 @@ def test_default_add_elem(default_map):
 def test_default_add_rule(default_map, priority):
     """Tests a rule creation"""
     default_map.add_rule('/app', ORMModel, loc_attr='slug', lastmod_attr='updated', priority=priority)
-    obj = default_map._models['/app']
+    obj = default_map._models['/app/']
     assert obj.model == ORMModel
     assert isinstance(obj.attrs['loc_attr'], str)
     assert isinstance(obj.attrs['lastmod_attr'], str)
@@ -160,7 +160,7 @@ def test_default_prepare_data_dynamic(default_map):
     assert default_map.records[-1].priority == 0.9
 
 
-@pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x'])
+@pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x/'])
 @pytest.mark.parametrize('suffix', ['', '/', '/suffix'])
 @pytest.mark.parametrize('model', [ORMModel, local_model])
 def test_default_replace_patterns(default_map, prefix, suffix, model):
@@ -168,8 +168,9 @@ def test_default_replace_patterns(default_map, prefix, suffix, model):
     uri = prefix + '/<slug>'
     slug = '/' + ORMModel.query.all()[0].slug
     default_map.add_rule(prefix, ORMModel, loc_attr='slug', lastmod_attr='updated', priority=0.7)
+    prefix = prefix if prefix.endswith('/') else prefix + '/'
     rec = default_map._replace_patterns(uri, [prefix, suffix])[0]
-    assert rec.loc == f'{default_map.url}{prefix}{slug}{suffix}'
+    assert rec.loc == join_url_path(default_map.url, prefix, slug, suffix)
     assert rec.lastmod == TEST_TIME_STR
     assert rec.priority == 0.7
 
@@ -196,7 +197,7 @@ def test_helpers_model(local_model):
 def test_helpers_model_add_rule(default_map, local_model):
     """Tests add_rule with helpers.Model"""
     default_map.add_rule('/path', local_model, loc_attr='slug_attr', lastmod_attr='lastmod_attr', priority=0.91)
-    path_model = default_map._models['/path']
+    path_model = default_map._models['/path/']
     assert path_model.attrs['loc_attr'] == 'slug_attr'
     assert path_model.attrs['lastmod_attr'] == 'lastmod_attr'
     assert path_model.attrs['priority'] == 0.9

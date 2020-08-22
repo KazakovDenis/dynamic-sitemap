@@ -202,6 +202,9 @@ class SitemapMeta(metaclass=ABCMeta):
         priority = round(priority or 0.0, 1)
         get_validated(loc=path, changefreq=changefreq, priority=priority)
 
+        if not path.endswith('/'):
+            path += '/'
+
         self._models[path] = PathModel(
             model=model,
             attrs={
@@ -256,7 +259,7 @@ class SitemapMeta(metaclass=ABCMeta):
     def get_dynamic_rules(self) -> list:
         """Returns all url should be added as a rule or to ignored list"""
         self.rules, all_rules = tee(self.rules)
-        return [i for i in all_rules if search(r'<[\w:]+>', i)]
+        return [i for i in all_rules if search(r'<(\w+:)?\w+>', i)]
 
     def get_root(self) -> str:
         """Returns app's root directory. Set config.APP_ROOT if not suitable"""
@@ -356,7 +359,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
             for uri in uris:
                 self.log.debug(f'Preparing Records for {uri}')
-                splitted = split(r'/<[\w:]+>', uri, maxsplit=1)
+                splitted = split(r'<(\w+:)?\w+>', uri, maxsplit=1)
 
                 if len(splitted) > 1:
                     replaced = self._replace_patterns(uri, splitted)
@@ -387,7 +390,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
         prefix, suffix = splitted[0], splitted[-1]
 
-        assert self._models.get(prefix), f"Your should add '{uri}' or it's part to ignored or "\
+        assert self._models.get(prefix), f"Your should add pattern '{uri}' or it's part to ignored or "\
                                          f"add a new rule with path '{prefix}'"
 
         model, attrs = self._models.get(prefix)
@@ -395,10 +398,11 @@ class SitemapMeta(metaclass=ABCMeta):
 
         try:
             for record in eval(self.query):
-                uri = '/' + getattr(record, attrs['loc_attr']) if attrs['loc_attr'] else ''
-                loc = f'{self.url}{prefix}{uri}{suffix}'
-                lastmod = None
 
+                path = getattr(record, attrs['loc_attr'])
+                loc = join_url_path(self.url, prefix, path, suffix)
+
+                lastmod = None
                 if attrs['lastmod_attr']:
                     lastmod = getattr(record, attrs['lastmod_attr'])
                     if isinstance(lastmod, datetime):

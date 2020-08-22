@@ -2,7 +2,7 @@ from collections import namedtuple
 from datetime import datetime
 from logging import Logger
 from typing import Callable, Iterable, Iterator, Tuple
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 
 PathModel = namedtuple('PathModel', 'model attrs')
@@ -49,6 +49,22 @@ def check_url(url: str) -> str:
     parsed = urlparse(url)
     if not all([parsed.scheme, parsed.netloc]):
         raise ValueError('Wrong URL. It should have a scheme and a hostname: ' + url)
+    return url
+
+
+def join_url_path(base_url: str, *path: str) -> str:
+    """Appends parts of a path to a base_url"""
+
+    if not path:
+        return base_url
+
+    url = urljoin(base_url, path[0])
+
+    for part in path[1:]:
+        if not url.endswith('/'):
+            url += '/'
+        url += part.lstrip('/')
+
     return url
 
 
