@@ -134,7 +134,7 @@ class SitemapConfig(dict):
     # Sitemap object attributes
     DEBUG: bool = False
     LOGGER: Logger = None
-    IGNORED: set = {'/admin', '/static', }
+    IGNORED: set = {'/sitemap.xml', '/admin', '/static', }
     SOURCE_FILE: str = join(EXTENSION_ROOT, 'templates', 'jinja2.xml')
     CACHE_PERIOD: Union[int, float] = None
 

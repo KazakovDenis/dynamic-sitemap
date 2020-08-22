@@ -121,8 +121,8 @@ def test_default_exclude(default_map, debug):
     pytest.param(False, [], None, datetime.now(), id='No data, cache disabled'),
     pytest.param(False, [], 1, datetime.now(), id='No data, cache enabled'),
     pytest.param(False, [1], None, datetime.now(), id='Data exists, cache disabled'),
-    pytest.param(False, [1], 1, datetime(2020, 1, 1), id='Data exists, cache enabled, time expired'),
-    pytest.param(True, [1], 1, datetime(2050, 1, 1), id='Data exists, cache enabled, time not expired')
+    pytest.param(False, [1], 1, datetime(2020, 1, 1), id='Data exists, cache enabled, time not expired'),
+    pytest.param(True, [1], 1, datetime(2050, 1, 1), id='Data exists, cache enabled, time expired')
 ])
 def test_default_should_use_cache(default_map, result, records, cache_period, timestamp):
     """Tests conditions to use cache"""
