@@ -44,6 +44,15 @@ def test_default_add_rule_priority(default_map, priority, error):
         default_map.add_rule('/app', ORMModel, loc_attr='slug', priority=priority)
 
 
+@pytest.mark.parametrize('slug, lastmod', [
+    pytest.param('no_such_attr', None, id='Wrong "loc" attribute'),
+    pytest.param('slug', 'no_such_attr', id='Wrong "lastmod" attribute'),
+])
+def test_default_add_rule_no_attr(default_map, slug, lastmod):
+    with pytest.raises(AttributeError):
+        default_map.add_rule('/blog/', ORMModel, loc_attr=slug, lastmod_attr=lastmod)
+
+
 @pytest.mark.parametrize('loc', [1, {1: 1}, '?arg1=50', TEST_URL])
 def test_default_validate_loc(default_map, loc):
     """Tests how loc validation works"""
@@ -104,14 +113,3 @@ def test_default_build_static(default_map, folder, path, error):
     default_map.config.IGNORED.update(DYNAMIC_URLS)
     with pytest.raises(error):
         default_map.build_static(path)
-
-
-@pytest.mark.parametrize('slug, lastmod', [
-    pytest.param('no_such_attr', None, id='Wrong "loc" attribute'),
-    pytest.param('slug', 'no_such_attr', id='Wrong "lastmod" attribute'),
-])
-def test_default_replace_patterns_no_attr(default_map, slug, lastmod):
-    prefix = '/blog/'
-    default_map.add_rule(prefix, ORMModel, loc_attr=slug, lastmod_attr=lastmod)
-    with pytest.raises(AttributeError):
-        default_map._replace_patterns('', [prefix, ''])

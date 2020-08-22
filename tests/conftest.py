@@ -41,6 +41,9 @@ rule = Mock(methods=['GET'], rule='/url')
 
 
 class ORMModel:
+
+    slug = updated = created = True
+
     # for SQLAlchemy, DjangoORM
     query = objects = Mock(
         all=lambda: [
@@ -60,7 +63,11 @@ def local_model():
     """Creates an instance of helpers.Model"""
     def extractor():
         return [('slug1', datetime(2020, 1, 1)), ('slug2', datetime(2020, 2, 2))]
-    return Model(extractor)
+
+    model = Model(extractor)
+    model.slug_attr = True
+    model.lastmod_attr = True
+    return model
 
 
 @pytest.fixture

@@ -58,7 +58,6 @@ from pathlib import Path
 from re import search, split
 from shutil import copyfile
 from typing import TypeVar, List
-from urllib.parse import urljoin
 from xml.etree import ElementTree as ET
 
 from .config import *
@@ -201,6 +200,15 @@ class SitemapMeta(metaclass=ABCMeta):
         """
         priority = round(priority or 0.0, 1)
         get_validated(loc=path, changefreq=changefreq, priority=priority)
+
+        for attr in (loc_attr, lastmod_attr if lastmod_attr else loc_attr,):
+            try:
+                getattr(model, attr)
+            except AttributeError as exc:
+                msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n' \
+                      f'loc_attr = {loc_attr} and/or lastmod_attr = {lastmod_attr}'
+                self.log.warning(msg)
+                raise AttributeError(msg) from exc
 
         if not path.endswith('/'):
             path += '/'
@@ -393,29 +401,22 @@ class SitemapMeta(metaclass=ABCMeta):
         assert self._models.get(prefix), f"Your should add pattern '{uri}' or it's part to ignored or "\
                                          f"add a new rule with path '{prefix}'"
 
-        model, attrs = self._models.get(prefix)
+        model, attrs = self._models[prefix]
         prepared = []
 
-        try:
-            for record in eval(self.query):
+        for record in eval(self.query):
+            path = getattr(record, attrs['loc_attr'])
+            loc = join_url_path(self.url, prefix, path, suffix)
+            lastmod = None
 
-                path = getattr(record, attrs['loc_attr'])
-                loc = join_url_path(self.url, prefix, path, suffix)
+            if attrs['lastmod_attr']:
+                lastmod = getattr(record, attrs['lastmod_attr'])
+                if isinstance(lastmod, datetime):
+                    lastmod = lastmod.strftime(self.time_fmt)
 
-                lastmod = None
-                if attrs['lastmod_attr']:
-                    lastmod = getattr(record, attrs['lastmod_attr'])
-                    if isinstance(lastmod, datetime):
-                        lastmod = lastmod.strftime(self.time_fmt)
-
-                prepared.append(
-                    Record(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority']))
-                )
-        except AttributeError as exc:
-            msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n'\
-                  f'loc_attr = {attrs["loc_attr"]} and/or lastmod_attr = {attrs.get("lastmod_attr")}'
-            self.log.warning(msg)
-            raise AttributeError(msg) from exc
+            prepared.append(
+                Record(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority']))
+            )
 
         self.log.debug(f'Included {len(prepared)} records')
         return prepared
