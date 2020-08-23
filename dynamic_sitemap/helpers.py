@@ -1,6 +1,7 @@
 from collections import namedtuple
 from datetime import datetime
 from logging import Logger
+from pytz import timezone
 from typing import Callable, Iterable, Iterator, Tuple
 from urllib.parse import urlparse, urljoin
 
@@ -66,6 +67,15 @@ def join_url_path(base_url: str, *path: str) -> str:
         url += part.lstrip('/')
 
     return url
+
+
+def get_iso_datetime(dt: datetime, tz: str = None) -> str:
+    """Returns the time with a timezone formatted according to W3C datetime format"""
+    if tz is None:
+        return dt.isoformat(timespec='seconds')
+
+    tz = timezone(tz)
+    return dt.astimezone(tz).isoformat(timespec='seconds')
 
 
 def get_query(orm_name: str = None) -> str:

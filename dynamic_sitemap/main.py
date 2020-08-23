@@ -120,7 +120,6 @@ class SitemapMeta(metaclass=ABCMeta):
     config = SitemapConfig()
     content_type = 'application/xml'
     filename = 'sitemap.xml'
-    time_fmt = '%Y-%m-%dT%H:%M:%S'
 
     def __init__(self, app, base_url: str, config_obj: ConfType = None, orm: str = None):
         """Creates an instance of a Sitemap
@@ -130,12 +129,10 @@ class SitemapMeta(metaclass=ABCMeta):
         :param config_obj: a class with configurations
         :param orm: an ORM name used in project (use 'local' and check helpers.Model out for raw SQL queries)
         """
-        start = datetime.now()
-
         self.app = app
         self.url = check_url(base_url)
-        self.start = start.strftime(self.time_fmt)
         self.query = get_query(orm)
+        self.start = None
         self.rules = None
         self.log = None
 
@@ -143,7 +140,7 @@ class SitemapMeta(metaclass=ABCMeta):
         self._records = ()                            # to store prepared Records
         self._models = {}                             # to store Models added by add_rule
         self._static_data = set()                     # to store Record instances added by add_elem
-        self._timestamp = start
+        self._timestamp = datetime.now()
 
         self.update(config_obj, init=True)
 
@@ -167,6 +164,7 @@ class SitemapMeta(metaclass=ABCMeta):
         if config_obj:
             self.config.from_object(config_obj)
 
+        self.start = get_iso_datetime(datetime.now(), self.config.TIMEZONE)
         self.log = self.get_logger()
         self.rules = self.get_rules()
 
@@ -378,9 +376,9 @@ class SitemapMeta(metaclass=ABCMeta):
                     )
                     dynamic_data.add(static_record)
 
+            dynamic_data.update(self._static_data)
             default_index = Record(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
             dynamic_data.add(default_index)
-            dynamic_data.update(self._static_data)
 
             self._records = iter(sorted(dynamic_data, key=lambda r: len(r.loc)))
             self._timestamp = datetime.now()
@@ -412,7 +410,7 @@ class SitemapMeta(metaclass=ABCMeta):
             if attrs['lastmod_attr']:
                 lastmod = getattr(record, attrs['lastmod_attr'])
                 if isinstance(lastmod, datetime):
-                    lastmod = lastmod.strftime(self.time_fmt)
+                    lastmod = get_iso_datetime(lastmod, self.config.TIMEZONE)
 
             prepared.append(
                 Record(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority']))
