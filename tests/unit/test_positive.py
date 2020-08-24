@@ -1,7 +1,5 @@
-from urllib.parse import urljoin
-
-from dynamic_sitemap.config import get_validated
-from dynamic_sitemap.main import CHANGE_FREQ, Record
+from dynamic_sitemap.main import Record
+from dynamic_sitemap.validators import get_validated, CHANGE_FREQ
 from ..conftest import *
 
 

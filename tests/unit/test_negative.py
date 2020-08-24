@@ -1,4 +1,4 @@
-from dynamic_sitemap.config import get_validated
+from dynamic_sitemap.validators import get_validated
 from ..conftest import *
 
 

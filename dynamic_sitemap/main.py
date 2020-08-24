@@ -62,6 +62,7 @@ from xml.etree import ElementTree as ET
 
 from .config import *
 from .helpers import *
+from .validators import get_validated
 
 
 HTTPResponse = TypeVar('HTTPResponse')
