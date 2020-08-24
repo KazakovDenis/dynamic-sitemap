@@ -69,4 +69,7 @@ Some important rules:
 - *config.IGNORED* has a priority over *add_rule*
 - use helpers.Model if your ORM is not supported
 
+Not supported yet:
+- urls with more than 1 converter, such as `/page/<int:user_id>/<str:slug>`
+
 Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/CHANGELOG.md)

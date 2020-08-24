@@ -23,6 +23,7 @@ if __name__ == '__main__':
         package_data={
             about['__module__']: ['templates/*'],
         },
+        install_requires=['pytz>=2020.1'],
         classifiers=[
             'Development Status :: 3 - Alpha',
             'Framework :: Flask',
