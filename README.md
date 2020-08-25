@@ -1,7 +1,6 @@
-# Dynamic sitemap
-| master | dev |
-| :---: | :---: |  
-| [![Build Status](https://travis-ci.com/KazakovDenis/dynamic-sitemap.svg?branch=master)](https://travis-ci.com/KazakovDenis/dynamic-sitemap) | [![Build Status](https://travis-ci.com/KazakovDenis/dynamic-sitemap.svg?branch=dev)](https://travis-ci.com/KazakovDenis/dynamic-sitemap) |  
+# Dynamic sitemap  
+[![Build Status](https://travis-ci.com/KazakovDenis/dynamic-sitemap.svg?branch=master)](https://travis-ci.com/KazakovDenis/dynamic-sitemap)
+[![codecov](https://codecov.io/gh/KazakovDenis/dynamic-sitemap/branch/master/graph/badge.svg)](https://codecov.io/gh/KazakovDenis/dynamic-sitemap)
 
 A simple sitemap generator for Python projects.
 
@@ -37,6 +36,7 @@ app = Framework(__name__)
 sitemap = FrameworkSitemap(app, 'https://mysite.com', orm='sqlalchemy')
 sitemap.config.IGNORED.update(['/edit', '/upload'])
 sitemap.config.TEMPLATE_FOLDER = 'templates'
+sitemap.config.TIMEZONE = 'Europe/Moscow'
 sitemap.update()
 sitemap.add_elem('/faq', changefreq='monthly', priority=0.4)
 sitemap.add_rule('/blog', Post, lastmod_attr='created', priority=1.0)
