@@ -1,6 +1,8 @@
 # Dynamic sitemap  
+![Python version](https://img.shields.io/badge/python-3.6%2B-blue)
 [![Build Status](https://travis-ci.com/KazakovDenis/dynamic-sitemap.svg?branch=master)](https://travis-ci.com/KazakovDenis/dynamic-sitemap)
 [![codecov](https://codecov.io/gh/KazakovDenis/dynamic-sitemap/branch/master/graph/badge.svg)](https://codecov.io/gh/KazakovDenis/dynamic-sitemap)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/dynamic-sitemap)
 
 A simple sitemap generator for Python projects.
 
