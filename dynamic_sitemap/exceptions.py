@@ -2,5 +2,9 @@ class SitemapError(Exception):
     pass
 
 
-class ValidationSitemapError(SitemapError):
+class SitemapValidationError(SitemapError):
+    pass
+
+
+class SitemapItemError(SitemapError):
     pass

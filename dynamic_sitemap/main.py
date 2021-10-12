@@ -49,23 +49,23 @@ Moreover you can get a static file by using:
     sitemap.build_static()
 """
 from abc import ABCMeta, abstractmethod
-from datetime import timedelta
+from datetime import timedelta, datetime
 from filecmp import cmp
 from itertools import tee
-from logging import getLogger, StreamHandler
+from logging import getLogger, StreamHandler, Logger
 from os.path import join, exists
 from pathlib import Path
 from re import search, split
 from shutil import copyfile
-from typing import TypeVar, List
+from typing import List, Sequence, Type
+from urllib.parse import urljoin
 from xml.etree import ElementTree as ET
 
-from .config import *
-from .helpers import *
+from . import config as conf, helpers
+from .items import SitemapItem, SitemapIndexItem, SitemapItemBase
+from .renderers import SitemapXMLRenderer, RendererBase, SitemapIndexXMLRenderer
 from .validators import get_validated
 
-
-HTTPResponse = TypeVar('HTTPResponse')
 
 XML_ATTRS = {
     'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
@@ -75,54 +75,14 @@ XML_ATTRS = {
 }
 
 
-class Page:
-    """A class representing an item of a sitemap"""
-
-    __slots__ = 'loc', 'lastmod', 'changefreq', 'priority'
-
-    def __init__(self, loc: str, lastmod: str = None, changefreq: str = None, priority: float = None):
-        self.loc = loc
-        self.lastmod = lastmod
-        self.changefreq = changefreq
-        self.priority = priority
-
-    def as_xml(self):
-        """Returns xml.etree.ElementTree element"""
-        element = ET.Element('url')
-        ET.SubElement(element, 'loc').text = self.loc
-
-        if self.lastmod:
-            ET.SubElement(element, 'lastmod').text = self.lastmod
-
-        if self.changefreq:
-            ET.SubElement(element, 'changefreq').text = self.changefreq
-
-        if self.priority:
-            ET.SubElement(element, 'priority').text = str(self.priority)
-
-        return element
-
-    def __eq__(self, other):
-        if isinstance(other, type(self)):
-            return self.loc == other.loc
-        else:
-            return False
-
-    def __hash__(self):
-        return hash(self.loc)
-
-    def __repr__(self):
-        return f'<Record loc="{self.loc}">'
-
-
 class SitemapMeta(metaclass=ABCMeta):
     """The base class to inherit"""
 
-    config = SitemapConfig()
+    config = conf.SitemapConfig()
     content_type = 'application/xml'
     filename = 'sitemap.xml'
 
-    def __init__(self, app, base_url: str, config_obj: ConfType = None, orm: str = None):
+    def __init__(self, app, base_url: str, config_obj: conf.ConfType = None, orm: str = None):
         """Creates an instance of a Sitemap
 
         :param app: an application instance
@@ -131,8 +91,8 @@ class SitemapMeta(metaclass=ABCMeta):
         :param orm: an ORM name used in project (use 'local' and check helpers.Model out for raw SQL queries)
         """
         self.app = app
-        self.url = check_url(base_url)
-        self.query = get_query(orm)
+        self.url = helpers.check_url(base_url)
+        self.query = helpers.get_query(orm)
         self.start = None
         self.rules = None
         self.log = None
@@ -151,7 +111,7 @@ class SitemapMeta(metaclass=ABCMeta):
         self._records, records = tee(self._records)
         return tuple(records)
 
-    def update(self, config_obj: ConfType = None, init: bool = False):
+    def update(self, config_obj: conf.ConfType = None, init: bool = False):
         """Updates sitemap instance configuration. Use it if you haven't passed config to __init__.
 
         :param config_obj: SitemapConfig instance or your own Config class
@@ -165,7 +125,7 @@ class SitemapMeta(metaclass=ABCMeta):
         if config_obj:
             self.config.from_object(config_obj)
 
-        self.start = get_iso_datetime(datetime.now(), self.config.TIMEZONE)
+        self.start = helpers.get_iso_datetime(datetime.now(), self.config.TIMEZONE)
         self.log = self.get_logger()
         self.rules = self.get_rules()
 
@@ -182,7 +142,7 @@ class SitemapMeta(metaclass=ABCMeta):
         """
         params = get_validated(loc=path, lastmod=lastmod, changefreq=changefreq, priority=priority)
         self._static_data.add(
-            Page(loc=urljoin(self.url, params.pop('loc')), **params)
+            SitemapItem(loc=urljoin(self.url, params.pop('loc')), **params),
         )
 
     def add_rule(self, path: str, model, loc_attr: str, lastmod_attr: str = None,
@@ -212,7 +172,7 @@ class SitemapMeta(metaclass=ABCMeta):
         if not path.endswith('/'):
             path += '/'
 
-        self._models[path] = PathModel(
+        self._models[path] = helpers.PathModel(
             model=model,
             attrs={
                 'loc_attr': loc_attr,
@@ -222,7 +182,7 @@ class SitemapMeta(metaclass=ABCMeta):
             }
         )
 
-    def build_static(self, path: DirPathType = None):
+    def build_static(self, path: conf.DirPathType = None):
         """Builds an XML file. The system user of the app should have rights to write files
 
         :param path: a path to destination directory
@@ -260,7 +220,7 @@ class SitemapMeta(metaclass=ABCMeta):
             logger.addHandler(handler)
 
         if self.config.DEBUG and logger:
-            set_debug_level(logger)
+            helpers.set_debug_level(logger)
         return logger
 
     def get_dynamic_rules(self) -> list:
@@ -284,7 +244,7 @@ class SitemapMeta(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def view(self, *args, **kwargs) -> HTTPResponse:
+    def view(self, *args, **kwargs):
         """The method to override. Should return HTTP response"""
         pass
 
@@ -372,13 +332,13 @@ class SitemapMeta(metaclass=ABCMeta):
                     replaced = self._replace_patterns(uri, splitted)
                     dynamic_data.update(replaced)
                 else:
-                    static_record = Page(
+                    static_record = SitemapItem(
                         urljoin(self.url, uri), self.start, self.config.ALTER_CHANGES, self.config.ALTER_PRIORITY
                     )
                     dynamic_data.add(static_record)
 
             dynamic_data.update(self._static_data)
-            default_index = Page(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
+            default_index = SitemapItem(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
             dynamic_data.add(default_index)
 
             self._records = iter(sorted(dynamic_data, key=lambda r: len(r.loc)))
@@ -387,7 +347,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.log.debug('Using existing data')
 
-    def _replace_patterns(self, uri: str, splitted: List[str]) -> List[Page]:
+    def _replace_patterns(self, uri: str, splitted: List[str]) -> List[SitemapItem]:
         """Replaces '/<converter:name>/...' with real URIs
 
         :param uri: a relative URL without base
@@ -405,16 +365,16 @@ class SitemapMeta(metaclass=ABCMeta):
 
         for record in eval(self.query):
             path = getattr(record, attrs['loc_attr'])
-            loc = join_url_path(self.url, prefix, path, suffix)
+            loc = helpers.join_url_path(self.url, prefix, path, suffix)
             lastmod = None
 
             if attrs['lastmod_attr']:
                 lastmod = getattr(record, attrs['lastmod_attr'])
                 if isinstance(lastmod, datetime):
-                    lastmod = get_iso_datetime(lastmod, self.config.TIMEZONE)
+                    lastmod = helpers.get_iso_datetime(lastmod, self.config.TIMEZONE)
 
             prepared.append(
-                Page(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority']))
+                SitemapItem(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority'])),
             )
 
         self.log.debug(f'Included {len(prepared)} records')
@@ -422,3 +382,28 @@ class SitemapMeta(metaclass=ABCMeta):
 
     def __repr__(self):
         return f'<Sitemap object of {self.url} based on {self.app}>'
+
+
+class SitemapBase:
+    renderer_cls: Type[RendererBase]
+    item_cls: Type[SitemapItemBase]
+
+    def __init__(self, items: Sequence):
+        self.items: Sequence[SitemapItem] = helpers.get_items(items, self.item_cls)
+
+    def get_renderer(self) -> RendererBase:
+        return self.renderer_cls(self.items)
+
+    def render(self) -> str:
+        renderer = self.get_renderer()
+        return renderer.render()
+
+
+class SimpleSitemapIndex(SitemapBase):
+    renderer_cls = SitemapIndexXMLRenderer
+    item_cls = SitemapIndexItem
+
+
+class SimpleSitemap(SitemapBase):
+    renderer_cls = SitemapXMLRenderer
+    item_cls = SitemapItem

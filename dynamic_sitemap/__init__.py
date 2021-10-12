@@ -1,4 +1,5 @@
-from .main import SitemapConfig, SitemapMeta
+from .config import SitemapConfig
+from .main import SitemapMeta
 from .flask_map import FlaskSitemap
 
 

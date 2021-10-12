@@ -2,8 +2,11 @@ from collections import namedtuple
 from datetime import datetime
 from logging import Logger
 from pytz import timezone
-from typing import Callable, Iterable, Iterator, Tuple
+from typing import Callable, Iterable, Iterator, Tuple, Collection, Type, List
 from urllib.parse import urlparse, urljoin
+
+from .exceptions import SitemapItemError
+from .items import SitemapItemBase
 
 
 PathModel = namedtuple('PathModel', 'model attrs')
@@ -101,3 +104,17 @@ def set_debug_level(logger: Logger):
     logger.setLevel(10)
     for handler in logger.handlers:
         handler.setLevel(10)
+
+
+def get_items(raw_data: Collection, cls: Type[SitemapItemBase]) -> List[SitemapItemBase]:
+    """Get prepared sitemap items from a raw data."""
+    items = []
+    for item in raw_data:
+        if isinstance(item, dict):
+            data = item
+        elif isinstance(item, str):
+            data = {'loc': item}
+        else:
+            raise SitemapItemError('Bad item', item)
+        items.append(cls(**data))
+    return items

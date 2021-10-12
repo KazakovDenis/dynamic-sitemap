@@ -1,4 +1,4 @@
-from dynamic_sitemap.main import Record
+from dynamic_sitemap.items import SitemapItem
 from dynamic_sitemap.validators import get_validated, CHANGE_FREQ
 from ..conftest import *
 
@@ -19,7 +19,7 @@ def test_config_from_obj(config, obj):
 
 def test_record():
     """Tests Record object returns XML object"""
-    rec = Record(loc='/path', lastmod='2020-01-01', changefreq='daily', priority=0.7).as_xml()
+    rec = SitemapItem(loc='/path', lastmod='2020-01-01', changefreq='daily', priority=0.7).as_xml()
     children = rec.getchildren()
     assert children[0].text == '/path'
     assert children[1].text == '2020-01-01'

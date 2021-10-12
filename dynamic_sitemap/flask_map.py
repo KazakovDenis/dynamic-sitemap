@@ -43,16 +43,20 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
 Moreover you can get a static file by using:
     sitemap.build_static()
 """
+from . import config
 from .main import *
 
 
-FlaskApp = TypeVar('Flask')
+try:
+    from flask import Flask
+except ImportError:
+    Flask = type('Flask', (), {})
 
 
 class FlaskSitemap(SitemapMeta):
     """A sitemap generator for a Flask application. For usage see the module documentation"""
 
-    def __init__(self, app: FlaskApp, base_url: str, config_obj: ConfType = None, orm: str = None):
+    def __init__(self, app: Flask, base_url: str, config_obj: config.ConfType = None, orm: str = None):
         """Creates an instance of a Sitemap
 
         :param app: an instance of Flask application

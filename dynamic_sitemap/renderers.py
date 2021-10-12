@@ -1,26 +1,22 @@
-import logging
 from io import BytesIO
-from typing import BinaryIO, Collection, Optional
+from typing import Collection
 from xml.etree import ElementTree
 
-from .main import Page
-from .validators import validate_io
-
-
-logger = logging.getLogger(__name__)
+from .items import SitemapIndexItem, SitemapItem, SitemapItemBase
 
 
 class RendererBase:
     """The base class for all renderers."""
 
-    def __init__(self, items: Collection):
+    def __init__(self, items: Collection[SitemapItemBase]):
         self._items = items
 
-    def render(self, *args, **kwargs) -> str:
+    def render(self) -> str:
         """Get a string representation."""
+        raise NotImplementedError
 
     @property
-    def items(self) -> Collection:
+    def items(self) -> Collection[SitemapItemBase]:
         return self._items
 
 
@@ -29,10 +25,27 @@ class XMLRendererBase(RendererBase):
     set_name: str
     set_attrs: dict
 
-    def get_tree(self):
-        raise NotImplementedError
+    def render(self) -> str:
+        """Render a sitemap."""
+        file = BytesIO()
+        tree = self.get_tree()
+        tree.write(file, xml_declaration=True, encoding='UTF-8')
+        return file.getvalue().decode()
 
-    def get_set(self):
+    def write(self, filename: str):
+        """Write a sitemap to a file."""
+        tree = self.get_tree()
+        tree.write(filename, xml_declaration=True, encoding='UTF-8')
+
+    def get_tree(self) -> ElementTree.ElementTree:
+        url_set = self.get_set()
+
+        for item in self.items:
+            url_set.append(item.as_xml())
+
+        return ElementTree.ElementTree(url_set)
+
+    def get_set(self) -> ElementTree.Element:
         return ElementTree.Element(self.set_name, self.set_attrs)
 
 
@@ -42,8 +55,8 @@ class SitemapIndexXMLRenderer(XMLRendererBase):
         'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
     }
 
-    def get_tree(self):
-        raise NotImplementedError
+    def __init__(self, items: Collection[SitemapIndexItem]):
+        super().__init__(items)
 
 
 class SitemapXMLRenderer(XMLRendererBase):
@@ -56,30 +69,5 @@ class SitemapXMLRenderer(XMLRendererBase):
             'http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd',
     }
 
-    def __init__(self, pages: Collection[Page]):
-        super().__init__(pages)
-
-    def render(self, file: Optional[BinaryIO] = None) -> str:
-        """Render a sitemap."""
-        if file is not None:
-            validate_io(file)
-        else:
-            file = BytesIO()
-        tree = self.get_tree()
-
-        try:
-            tree.write(file, xml_declaration=True, encoding='UTF-8')
-            file.seek(0)
-            xml = file.read().decode()
-        finally:
-            file.close()
-
-        return xml
-
-    def get_tree(self) -> ElementTree.ElementTree:
-        url_set = self.get_set()
-
-        for page in self.items:
-            url_set.append(page.as_xml())
-
-        return ElementTree.ElementTree(url_set)
+    def __init__(self, items: Collection[SitemapItem]):
+        super().__init__(items)
