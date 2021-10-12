@@ -4,8 +4,13 @@ from re import match, VERBOSE
 from typing import Any, Union
 from urllib.parse import urlparse
 
+from .exceptions import ValidationSitemapError
 
-__all__ = ('CHANGE_FREQ', 'Location', 'LastModified', 'ChangeFrequency', 'Priority', 'Timezone', 'get_validated')
+
+__all__ = (
+    'CHANGE_FREQ', 'Location', 'LastModified', 'ChangeFrequency', 'Priority', 'Timezone', 'get_validated',
+    'validate_io',
+)
 
 CHANGE_FREQ = 'always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'
 
@@ -139,3 +144,11 @@ def get_validated(loc=None, lastmod=None, changefreq=None, priority=None) -> dic
         result['priority'] = Priority.validate(priority)
 
     return result
+
+
+def validate_io(obj):
+    """Validate that object has an IO interface."""
+    for operation in 'read', 'seek', 'write':
+        if not hasattr(obj, operation):
+            raise ValidationSitemapError('Invalid file object.', obj)
+    return obj
