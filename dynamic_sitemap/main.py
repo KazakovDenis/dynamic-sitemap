@@ -75,7 +75,7 @@ XML_ATTRS = {
 }
 
 
-class Record:
+class Page:
     """A class representing an item of a sitemap"""
 
     __slots__ = 'loc', 'lastmod', 'changefreq', 'priority'
@@ -182,7 +182,7 @@ class SitemapMeta(metaclass=ABCMeta):
         """
         params = get_validated(loc=path, lastmod=lastmod, changefreq=changefreq, priority=priority)
         self._static_data.add(
-            Record(loc=urljoin(self.url, params.pop('loc')), **params)
+            Page(loc=urljoin(self.url, params.pop('loc')), **params)
         )
 
     def add_rule(self, path: str, model, loc_attr: str, lastmod_attr: str = None,
@@ -372,13 +372,13 @@ class SitemapMeta(metaclass=ABCMeta):
                     replaced = self._replace_patterns(uri, splitted)
                     dynamic_data.update(replaced)
                 else:
-                    static_record = Record(
+                    static_record = Page(
                         urljoin(self.url, uri), self.start, self.config.ALTER_CHANGES, self.config.ALTER_PRIORITY
                     )
                     dynamic_data.add(static_record)
 
             dynamic_data.update(self._static_data)
-            default_index = Record(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
+            default_index = Page(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
             dynamic_data.add(default_index)
 
             self._records = iter(sorted(dynamic_data, key=lambda r: len(r.loc)))
@@ -387,7 +387,7 @@ class SitemapMeta(metaclass=ABCMeta):
 
         self.log.debug('Using existing data')
 
-    def _replace_patterns(self, uri: str, splitted: List[str]) -> List[Record]:
+    def _replace_patterns(self, uri: str, splitted: List[str]) -> List[Page]:
         """Replaces '/<converter:name>/...' with real URIs
 
         :param uri: a relative URL without base
@@ -414,7 +414,7 @@ class SitemapMeta(metaclass=ABCMeta):
                     lastmod = get_iso_datetime(lastmod, self.config.TIMEZONE)
 
             prepared.append(
-                Record(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority']))
+                Page(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority']))
             )
 
         self.log.debug(f'Included {len(prepared)} records')
