@@ -53,7 +53,6 @@ from abc import ABCMeta, abstractmethod
 from datetime import timedelta, datetime
 from filecmp import cmp
 from itertools import tee
-from logging import getLogger, StreamHandler, Logger
 from os.path import join, exists
 from pathlib import Path
 from re import search, split
@@ -99,7 +98,6 @@ class SitemapMeta(metaclass=ABCMeta):
         self.query = helpers.get_query(orm)
         self.start = None
         self.rules = None
-        self.log = None
 
         # containers
         self._records = ()                            # to store prepared Records
@@ -130,7 +128,6 @@ class SitemapMeta(metaclass=ABCMeta):
             self.config.from_object(config_obj)
 
         self.start = helpers.get_iso_datetime(datetime.now(), self.config.TIMEZONE)
-        self.log = self.get_logger()
         self.rules = self.get_rules()
 
         if config_obj or not init:
@@ -170,7 +167,7 @@ class SitemapMeta(metaclass=ABCMeta):
             except AttributeError as exc:
                 msg = f'Incorrect attributes are set for the model "{model}" in add_rule():\n' \
                       f'loc_attr = {loc_attr} and/or lastmod_attr = {lastmod_attr}'
-                self.log.warning(msg)
+                logger.warning(msg)
                 raise AttributeError(msg) from exc
 
         if not path.endswith('/'):
@@ -197,7 +194,7 @@ class SitemapMeta(metaclass=ABCMeta):
         assert folder, 'You should set config.STATIC_FOLDER or pass it directly into build_static()'
 
         fullname = join(folder, self.filename) if isinstance(folder, str) else join(*folder, self.filename)
-        self.log.info(f'Creating {fullname}...')
+        logger.info(f'Creating {fullname}...')
 
         url_set = ET.Element('urlset', XML_ATTRS)
 
@@ -209,23 +206,10 @@ class SitemapMeta(metaclass=ABCMeta):
             tree.write(fullname, xml_declaration=True, encoding='UTF-8')
         except FileNotFoundError as e:
             error = f'Seems like path "{path}" is not found or credentials required.'
-            self.log.error(error)
+            logger.error(error)
             raise FileNotFoundError(error) from e
 
-        self.log.info('Static sitemap is ready')
-
-    def get_logger(self) -> Logger:
-        """Returns an instance of logging.Logger (set in config)"""
-        if self.config.LOGGER:
-            logger = self.config.LOGGER
-        else:
-            logger = getLogger('sitemap')
-            handler = StreamHandler()
-            logger.addHandler(handler)
-
-        if self.config.DEBUG and logger:
-            helpers.set_debug_level(logger)
-        return logger
+        logger.info('Static sitemap is ready')
 
     def get_dynamic_rules(self) -> list:
         """Returns all url should be added as a rule or to ignored list"""
@@ -266,15 +250,15 @@ class SitemapMeta(metaclass=ABCMeta):
         if not exists(filename):
             try:
                 copyfile(self.config.SOURCE_FILE, filename)
-                self.log.info(f'The template has been created: {filename}')
+                logger.info(f'The template has been created: {filename}')
             except FileNotFoundError as e:
                 error = 'Unable to copy template file. Set config.APP_ROOT or check this path exists: ' + filename
-                self.log.error(error)
+                logger.error(error)
                 raise PermissionError(error) from e
         else:
             if not cmp(self.config.SOURCE_FILE, filename, shallow=False):
                 msg = 'It seems another sitemap already exists. Delete it and retry: ' + filename
-                self.log.error(msg)
+                logger.error(msg)
                 raise FileExistsError(msg)
 
     def _exclude(self) -> iter:
@@ -283,14 +267,14 @@ class SitemapMeta(metaclass=ABCMeta):
 
         if self.config.DEBUG:
             public_uris = tuple(public_uris)
-            self.log.debug(f'Rules before exclusion: {len(public_uris)}')
+            logger.debug(f'Rules before exclusion: {len(public_uris)}')
 
         for item in self.config.IGNORED:
             public_uris = iter([uri for uri in public_uris if item not in uri])
 
         if self.config.DEBUG:
             public_uris = tuple(public_uris)
-            self.log.debug(f'Rules left: {len(public_uris)}')
+            logger.debug(f'Rules left: {len(public_uris)}')
 
         return public_uris
 
@@ -298,7 +282,7 @@ class SitemapMeta(metaclass=ABCMeta):
         """Checks whether to use cache or to update data"""
         # app just started
         if not self.records:
-            self.log.debug('Data is not ready yet')
+            logger.debug('Data is not ready yet')
             return False
 
         if self.config.CACHE_PERIOD:
@@ -312,7 +296,7 @@ class SitemapMeta(metaclass=ABCMeta):
             time_to_cache = self._timestamp + timedelta(hours=hours, minutes=minutes)
 
             if time_to_cache < datetime.now():
-                self.log.debug('Updating data cache...')
+                logger.debug('Updating data cache...')
                 return False
 
             # caching period not expired
@@ -329,7 +313,7 @@ class SitemapMeta(metaclass=ABCMeta):
             uris = self._exclude()
 
             for uri in uris:
-                self.log.debug(f'Preparing Records for {uri}')
+                logger.debug(f'Preparing Records for {uri}')
                 splitted = split(r'<(\w+:)?\w+>', uri, maxsplit=1)
 
                 if len(splitted) > 1:
@@ -347,9 +331,9 @@ class SitemapMeta(metaclass=ABCMeta):
 
             self._records = iter(sorted(dynamic_data, key=lambda r: len(r.loc)))
             self._timestamp = datetime.now()
-            self.log.debug('Data for the sitemap is updated')
+            logger.debug('Data for the sitemap is updated')
 
-        self.log.debug('Using existing data')
+        logger.debug('Using existing data')
 
     def _replace_patterns(self, uri: str, splitted: List[str]) -> List[SitemapItem]:
         """Replaces '/<converter:name>/...' with real URIs
@@ -381,7 +365,7 @@ class SitemapMeta(metaclass=ABCMeta):
                 SitemapItem(**get_validated(loc, lastmod, attrs['changefreq'], attrs['priority'])),
             )
 
-        self.log.debug(f'Included {len(prepared)} records')
+        logger.debug(f'Included {len(prepared)} records')
         return prepared
 
     def __repr__(self):

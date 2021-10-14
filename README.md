@@ -30,7 +30,6 @@ urls = [
 sitemap = SimpleSitemap(urls, 'https://mysite.com')
 sitemap.write('static/sitemap.xml')
 ```
-
 ### Dynamic
 Only FlaskSitemap is implemented yet, so there is an example:
 ```python
@@ -45,12 +44,12 @@ Then run your server and visit http://mysite.com/sitemap.xml.
 
 Basic example with some Models:
 ```python
-from framework import Framework
-from dynamic_sitemap import FrameworkSitemap
+from flask import Flask
+from dynamic_sitemap import FlaskSitemap
 from models import Post, Tag
 
-app = Framework(__name__)
-sitemap = FrameworkSitemap(app, 'https://mysite.com', orm='sqlalchemy')
+app = Flask(__name__)
+sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
 sitemap.config.IGNORED.update(['/edit', '/upload'])
 sitemap.config.TEMPLATE_FOLDER = 'templates'
 sitemap.config.TIMEZONE = 'Europe/Moscow'
@@ -62,22 +61,14 @@ sitemap.add_rule('/blog/tag', Tag, changefreq='daily')
 
 Also you can set configurations from your class (and __it's preferred__):
 ```python
-sm_logger = logging.getLogger('sitemap')
-sm_logger.setLevel(30)
-
 class Config:
     TEMPLATE_FOLDER = os.path.join(ROOT, 'app', 'templates')
     IGNORED = {'/admin', '/back-office', '/other-pages'}
     ALTER_PRIORITY = 0.1
-    LOGGER = sm_logger
 
-sitemap = FrameworkSitemap(app, 'https://myshop.org', config_obj=Config)
+sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
 sitemap.add_elem('/about', changefreq='monthly', priority=0.4)
 sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
-```
-Moreover you can get a static file by using:
-```python
-sitemap.build_static()
 ```
 
 Some important rules:  
