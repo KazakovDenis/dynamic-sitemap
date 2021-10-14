@@ -15,6 +15,10 @@ class RendererBase:
         """Get a string representation."""
         raise NotImplementedError
 
+    def write(self, filename: str):
+        """Write to a file."""
+        raise NotImplementedError
+
     @property
     def items(self) -> Collection[SitemapItemBase]:
         return self._items
@@ -60,7 +64,7 @@ class SitemapIndexXMLRenderer(XMLRendererBase):
 
 
 class SitemapXMLRenderer(XMLRendererBase):
-    set_name: str = 'url_set'
+    set_name: str = 'urlset'
     set_attrs: dict = {
         'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
         'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',

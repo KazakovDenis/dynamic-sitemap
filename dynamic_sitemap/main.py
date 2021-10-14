@@ -48,6 +48,7 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
 Moreover you can get a static file by using:
     sitemap.build_static()
 """
+import logging
 from abc import ABCMeta, abstractmethod
 from datetime import timedelta, datetime
 from filecmp import cmp
@@ -62,10 +63,13 @@ from urllib.parse import urljoin
 from xml.etree import ElementTree as ET
 
 from . import config as conf, helpers
+from .exceptions import SitemapIOError
 from .items import SitemapItem, SitemapIndexItem, SitemapItemBase
 from .renderers import SitemapXMLRenderer, RendererBase, SitemapIndexXMLRenderer
 from .validators import get_validated
 
+
+logger = logging.getLogger(__name__)
 
 XML_ATTRS = {
     'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
@@ -385,18 +389,40 @@ class SitemapMeta(metaclass=ABCMeta):
 
 
 class SitemapBase:
+    """The base class for all sitemaps."""
     renderer_cls: Type[RendererBase]
     item_cls: Type[SitemapItemBase]
 
-    def __init__(self, items: Sequence):
-        self.items: Sequence[SitemapItem] = helpers.get_items(items, self.item_cls)
-
-    def get_renderer(self) -> RendererBase:
-        return self.renderer_cls(self.items)
+    def __init__(self, items: Sequence, base_url: str):
+        self.initial_items = items
+        self.base_url = base_url
+        self.items = None
 
     def render(self) -> str:
-        renderer = self.get_renderer()
+        """Get a string sitemap representation."""
+        renderer = self._get_renderer()
         return renderer.render()
+
+    def write(self, filename: str):
+        """Write a sitemap to a file."""
+        renderer = self._get_renderer()
+        try:
+            renderer.write(filename)
+        except FileNotFoundError:
+            error = f'Path "{filename}" is not found or credentials required.'
+            logger.exception(error)
+            raise SitemapIOError(error)
+
+    def _get_renderer(self) -> RendererBase:
+        return self.renderer_cls(self._get_items())
+
+    def _get_items(self):
+        if not self.items:
+            self.items = helpers.get_items(self.initial_items, self.item_cls, self.base_url)
+        return self.items
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__} of "{self.base_url}">'
 
 
 class SimpleSitemapIndex(SitemapBase):
@@ -407,3 +433,10 @@ class SimpleSitemapIndex(SitemapBase):
 class SimpleSitemap(SitemapBase):
     renderer_cls = SitemapXMLRenderer
     item_cls = SitemapItem
+
+
+class DynamicSitemapBase(SimpleSitemap):
+
+    @abstractmethod
+    def as_view(self, *args, **kwargs):
+        """The method to override. Should return HTTP response"""

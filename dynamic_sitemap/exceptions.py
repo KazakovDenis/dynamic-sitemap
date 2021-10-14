@@ -8,3 +8,7 @@ class SitemapValidationError(SitemapError):
 
 class SitemapItemError(SitemapError):
     pass
+
+
+class SitemapIOError(SitemapError):
+    pass

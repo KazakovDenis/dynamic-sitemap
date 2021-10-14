@@ -1,48 +1,58 @@
-from abc import ABCMeta, abstractmethod
+import enum
 from pytz import timezone
 from re import match, VERBOSE
-from typing import Any, Union
+from typing import List, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 
 __all__ = (
-    'CHANGE_FREQ', 'Location', 'LastModified', 'ChangeFrequency', 'Priority', 'Timezone', 'get_validated',
+    'ChangeFreq', 'Location', 'LastModified', 'ChangeFrequency', 'Priority', 'Timezone', 'get_validated',
 )
 
-CHANGE_FREQ = 'always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'
 
-
-class Parameter(metaclass=ABCMeta):
-    """A descriptor to check configuration parameters values"""
-
-    __slots__ = ('storage', )
-
-    assert_msg = None
-
-    def __init__(self, default: Any = None):
-        self.storage = default
+class ChangeFreq(enum.Enum):
+    ALWAYS = 'always'
+    HOURLY = 'hourly'
+    DAILY = 'daily'
+    WEEKLY = 'weekly'
+    MONTHLY = 'monthly'
+    YEARLY = 'yearly'
+    NEVER = 'never'
 
     @classmethod
-    @abstractmethod
-    def validate(cls, value):
-        pass
+    def values(cls) -> List[str]:
+        return [i.value for i in cls]
+
+
+Value = TypeVar('Value')
+
+
+class Parameter:
+    """A descriptor to check configuration parameters values"""
+    __slots__ = ('default', 'storage')
+
+    def __init__(self, default: Optional[Value] = None):
+        self.default = default
+        self.storage = {}
 
     def __get__(self, instance, owner):
-        return self.storage
+        return self.storage.get(id(instance), self.default)
 
     def __set__(self, instance, value):
-        self.storage = self.validate(value)
+        self.storage[id(instance)] = self.validate(value)
+
+    @classmethod
+    def validate(cls, value: Value) -> Value:
+        return value
 
 
 class Location(Parameter):
     """A descriptor to check loc parameter values"""
-
     __slots__ = ()
-
     assert_msg = 'A path is required in location parameter'
 
     @classmethod
-    def validate(cls, value) -> str:
+    def validate(cls, value: str) -> str:
         if value is not None:
             assert isinstance(value, str), cls.assert_msg
             assert urlparse(value).path, cls.assert_msg
@@ -57,7 +67,7 @@ class LastModified(Parameter):
     assert_msg = 'Last modified should be of the format: YYYY-MM-DD[Thh:mm:ss[±hh:mm]]. Time and timezone is optional.'
 
     @classmethod
-    def validate(cls, value) -> str:
+    def validate(cls, value: str) -> str:
         if value is not None:
             assert isinstance(value, str), cls.assert_msg
             pattern = r"""
@@ -84,13 +94,13 @@ class ChangeFrequency(Parameter):
 
     __slots__ = ()
 
-    assert_msg = 'Change frequency should be one of the following: ' + ', '.join(CHANGE_FREQ)
+    assert_msg = 'Change frequency should be one of the following: ' + ', '.join(ChangeFreq.values())
 
     @classmethod
-    def validate(cls, value) -> str:
+    def validate(cls, value: str) -> str:
         if value is not None:
             assert isinstance(value, str), cls.assert_msg
-            assert value.casefold() in CHANGE_FREQ, cls.assert_msg
+            assert value.casefold() in ChangeFreq.values(), cls.assert_msg
         return value
 
 
@@ -102,7 +112,7 @@ class Priority(Parameter):
     assert_msg = 'Priority should be a float between 0.0 and 1.0'
 
     @classmethod
-    def validate(cls, value) -> Union[int, float]:
+    def validate(cls, value: Union[int, float]) -> Union[int, float]:
         if value is not None:
             assert isinstance(value, (int, float)), cls.assert_msg
             assert 0.0 < value <= 1.0, cls.assert_msg
@@ -117,7 +127,7 @@ class Timezone(Parameter):
     assert_msg = 'Timezone should be one of pytz.all_timezones items'
 
     @classmethod
-    def validate(cls, value) -> str:
+    def validate(cls, value: str) -> str:
         if value is not None:
             assert isinstance(value, str), cls.assert_msg
             timezone(value)

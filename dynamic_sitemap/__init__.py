@@ -1,6 +1,7 @@
 from .config import SitemapConfig
-from .main import SitemapMeta
+from .main import SitemapMeta, SimpleSitemap, SimpleSitemapIndex
 from .flask_map import FlaskSitemap
+from .validators import ChangeFreq
 
 
 __author__ = 'Denis Kazakov'

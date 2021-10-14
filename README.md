@@ -7,7 +7,7 @@
 A simple sitemap generator for Python projects.
 
 Already implemented:
-- metaclass SitemapMeta
+- SimpleSitemap
 - FlaskSitemap
 
 ## Installation
@@ -17,13 +17,28 @@ pip install dynamic-sitemap
 ```
   
 ## Usage
-"Hello world" example:
+### Static
 ```python
-from framework import Framework
-from dynamic_sitemap import FrameworkSitemap
+from datetime import datetime
+from dynamic_sitemap import SimpleSitemap, ChangeFreq
 
-app = Framework(__name__)
-sitemap = FrameworkSitemap(app, 'https://mysite.com')
+urls = [
+    '/',
+    {'loc': '/contacts', 'changefreq': ChangeFreq.NEVER.value},
+    {'loc': '/about', 'priority': 0.9, 'lastmod': datetime.now().isoformat()},
+]
+sitemap = SimpleSitemap(urls, 'https://mysite.com')
+sitemap.write('static/sitemap.xml')
+```
+
+### Dynamic
+Only FlaskSitemap is implemented yet, so there is an example:
+```python
+from flask import Flask
+from dynamic_sitemap import FlaskSitemap
+
+app = Flask(__name__)
+sitemap = FlaskSitemap(app, 'https://mysite.com')
 sitemap.update()
 ```
 Then run your server and visit http://mysite.com/sitemap.xml.  

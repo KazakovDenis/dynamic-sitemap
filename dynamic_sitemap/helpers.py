@@ -106,9 +106,10 @@ def set_debug_level(logger: Logger):
         handler.setLevel(10)
 
 
-def get_items(raw_data: Collection, cls: Type[SitemapItemBase]) -> List[SitemapItemBase]:
+def get_items(raw_data: Collection, cls: Type[SitemapItemBase], base_url: str = '') -> List[SitemapItemBase]:
     """Get prepared sitemap items from a raw data."""
     items = []
+
     for item in raw_data:
         if isinstance(item, dict):
             data = item
@@ -116,5 +117,9 @@ def get_items(raw_data: Collection, cls: Type[SitemapItemBase]) -> List[SitemapI
             data = {'loc': item}
         else:
             raise SitemapItemError('Bad item', item)
+
+        if base_url:
+            data['loc'] = urljoin(base_url, data['loc'])
         items.append(cls(**data))
+
     return items
