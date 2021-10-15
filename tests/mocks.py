@@ -1,31 +1,14 @@
 from copy import copy
 
 
-class FuncMock:
-    """A class for creating function mocks for testing
-
-        Creating a mock:
-    >>> do_smth = FuncMock(True, 'do_smth')
-    >>> do_smth, do_smth()
-    (<"do_smth" function mock>, True)
-    """
-    def __init__(self, to_return=None, name=None):
-        self.container = to_return
-        self.name = f'"{name}" ' if name else ''
-
-    def __call__(self, *args, **kwargs):
-        return self.container
-
-    def __repr__(self):
-        return f'<{self.name}function mock>'
-
-
 class Mock:
     """A class for creating object mocks for testing
 
         Create one object:
-    >>> app = Mock('none_arg', false_arg=False, another_arg='value', empty_mock_arg=None, \
-                    callable_arg=lambda: 'value', mock_name='App')
+    >>> app = Mock(
+    >>>     'none_arg', false_arg=False, another_arg='value', empty_mock_arg=None,
+    >>>     callable_arg=lambda: 'value', mock_name='App',
+    >>> )
     >>> app
     <"App" mock>
 

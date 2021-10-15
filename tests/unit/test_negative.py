@@ -1,8 +1,12 @@
+import pytest
+
+from dynamic_sitemap import SitemapConfig
+from dynamic_sitemap.core import DynamicSitemapBase
 from dynamic_sitemap.validators import get_validated
-from ..conftest import *
+
+from ..utils import TRUE_INSTANCES, TEST_URL, ORMModel, WRONG_FOLDER, DYNAMIC_URLS
 
 
-# Config tests
 @pytest.mark.parametrize('obj', TRUE_INSTANCES)
 def test_config_from_obj(config, obj):
     """Tests configuration's from_object method exception"""
@@ -28,7 +32,7 @@ def test_config_set(default_map):
 def test_default_create_map(url, orm, config, error):
     """Test exceptions while init"""
     with pytest.raises(error):
-        DefaultSitemap(Mock, url, config_obj=config, orm=orm)
+        DynamicSitemapBase(url, config=config, orm=orm)
 
 
 @pytest.mark.parametrize('priority, error', [
@@ -41,7 +45,7 @@ def test_default_add_rule_priority(default_map, priority, error):
     """Assertion error should be raised when priority is not in range 0.0-1.0.
     TypeError should be raised when got non-numeric."""
     with pytest.raises(error):
-        default_map.add_rule('/app', ORMModel, loc_attr='slug', priority=priority)
+        default_map.add_rule('/app', ORMModel, loc_from='slug', priority=priority)
 
 
 @pytest.mark.parametrize('slug, lastmod', [
@@ -50,7 +54,7 @@ def test_default_add_rule_priority(default_map, priority, error):
 ])
 def test_default_add_rule_no_attr(default_map, slug, lastmod):
     with pytest.raises(AttributeError):
-        default_map.add_rule('/blog/', ORMModel, loc_attr=slug, lastmod_attr=lastmod)
+        default_map.add_rule('/blog/', ORMModel, loc_from=slug, lastmod_from=lastmod)
 
 
 @pytest.mark.parametrize('loc', [1, {1: 1}, '?arg1=50', TEST_URL])
@@ -81,35 +85,14 @@ def test_default_validate_priority(default_map, priority):
         get_validated(priority=priority)
 
 
-def test_default_copy_template_file_exists(request, default_map):
-    """Tests exception which should be raised when sitemap.xml already exists"""
-    def teardown():
-        os.remove(TEST_FILE)
-    request.addfinalizer(teardown)
-    
-    with open(TEST_FILE, 'w') as f:
-        f.write('Another sitemap file')
-
-    with pytest.raises(FileExistsError):
-        default_map._copy_template()
-
-
-def test_default_copy_template_no_permission(default_map):
-    """Tests exception which should be raised when putting into not existing directory"""
-    default_map.config.TEMPLATE_FOLDER = 'no_such_dir'
-    with pytest.raises(PermissionError):
-        default_map._copy_template()
-
-
-@pytest.mark.parametrize('folder, path, error', [
-    pytest.param(None, None, AssertionError, id='No folder set'),
-    pytest.param(WRONG_FOLDER, None, FileNotFoundError, id='Wrong folder in config'),
-    pytest.param(None, WRONG_FOLDER, FileNotFoundError, id='Wrong path in arguments'),
+@pytest.mark.parametrize('path, error', [
+    pytest.param(None, AssertionError, id='No folder set'),
+    pytest.param(WRONG_FOLDER, FileNotFoundError, id='Wrong folder in config'),
+    pytest.param(None, FileNotFoundError, id='Wrong path in arguments'),
 ])
-def test_default_build_static(default_map, folder, path, error):
+def test_default_build_static(default_map, path, error):
     """Tests raising exceptions with no or wrong path set"""
     default_map.filename = 'static.xml'
-    default_map.config.STATIC_FOLDER = folder
     default_map.config.IGNORED.update(DYNAMIC_URLS)
     with pytest.raises(error):
-        default_map.build_static(path)
+        default_map.write(path)

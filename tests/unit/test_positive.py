@@ -1,6 +1,15 @@
+import os
+from datetime import datetime
+from urllib.parse import urljoin
+
+import pytest
+
+from dynamic_sitemap import SitemapConfig
+from dynamic_sitemap.helpers import join_url_path
 from dynamic_sitemap.items import SitemapItem
-from dynamic_sitemap.validators import get_validated, CHANGE_FREQ
-from ..conftest import *
+from dynamic_sitemap.validators import get_validated, ChangeFreq
+
+from ...tests import utils
 
 
 # Config tests
@@ -30,7 +39,7 @@ def test_record():
 # Base object tests
 def test_default_create_map(default_map, config):
     """Tests an instance creation"""
-    assert TEST_DATE_STR in default_map.start
+    assert utils.TEST_DATE_STR in default_map.start
 
 
 def test_default_add_elem(default_map):
@@ -39,18 +48,18 @@ def test_default_add_elem(default_map):
     default_map.add_elem('/index', lastmod='2020-02-02', changefreq='daily', priority=1)
     assert len(default_map._static_data) == 1
     rec = default_map._static_data.pop()
-    assert rec.loc == urljoin(TEST_URL, '/index')
+    assert rec.loc == urljoin(utils.TEST_URL, '/index')
     assert isinstance(rec.lastmod, str)
-    assert rec.changefreq in CHANGE_FREQ
+    assert rec.changefreq in ChangeFreq.values()
     assert isinstance(rec.priority, (float, int))
 
 
 @pytest.mark.parametrize('priority', [0.5, 0.733, 1])
 def test_default_add_rule(default_map, priority):
     """Tests a rule creation"""
-    default_map.add_rule('/app', ORMModel, loc_attr='slug', lastmod_attr='updated', priority=priority)
+    default_map.add_rule('/app', utils.ORMModel, loc_attr='slug', lastmod_attr='updated', priority=priority)
     obj = default_map._models['/app/']
-    assert obj.model == ORMModel
+    assert obj.model == utils.ORMModel
     assert isinstance(obj.attrs['loc_attr'], str)
     assert isinstance(obj.attrs['lastmod_attr'], str)
     assert isinstance(obj.attrs['priority'], (float, int))
@@ -71,17 +80,6 @@ def test_default_get_dynamic_rules(default_map):
         assert '<' in url
 
 
-@pytest.mark.parametrize('logger, name', [
-    pytest.param(None, 'sitemap', id='Default logger'),
-    pytest.param(Logger('test'), 'test', id='User logger')
-])
-def test_default_get_logger(default_map, logger, name):
-    """Tests setting a default logger"""
-    default_map.config.LOGGER = logger
-    log = default_map.get_logger()
-    assert log.name == name
-
-
 def test_default_logger_debug(default_map):
     """Tests a logger creation and debug level setup"""
     default_map.config.DEBUG = True
@@ -93,7 +91,7 @@ def test_default_logger_debug(default_map):
 
 def test_default_copy_template(default_map, request):
     """Tests a static file copying to source folder"""
-    new_dir = os.path.join(TEST_FOLDER, 'new_dir')
+    new_dir = os.path.join(utils.TEST_FOLDER, 'new_dir')
 
     def teardown():
         from shutil import rmtree
@@ -135,10 +133,10 @@ def test_default_prepare_data_static(default_map):
     assert not default_map.records
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
-    default_map.config.IGNORED.update(DYNAMIC_URLS)
+    default_map.config.IGNORED.update(utils.DYNAMIC_URLS)
     default_map._prepare_data()
-    assert TEST_URL in default_map.records[-1].loc
-    assert TEST_DATE_STR in default_map.records[-1].lastmod
+    assert utils.TEST_URL in default_map.records[-1].loc
+    assert utils.TEST_DATE_STR in default_map.records[-1].lastmod
     assert default_map.records[0].priority == 1.0
     assert default_map.records[-1].priority == 0.3
 
@@ -149,10 +147,10 @@ def test_default_prepare_data_dynamic(default_map):
     default_map.config.INDEX_PRIORITY = 1.0
     default_map.config.ALTER_PRIORITY = 0.3
     default_map.config.IGNORED = {'/api', '/blog'}
-    default_map.add_rule('/ign', ORMModel, loc_attr='slug', lastmod_attr='updated', priority=0.91)
+    default_map.add_rule('/ign', utils.ORMModel, loc_attr='slug', lastmod_attr='updated', priority=0.91)
     default_map._prepare_data()
-    assert TEST_URL in default_map.records[-1].loc
-    assert TEST_DATE_STR in default_map.records[-1].lastmod
+    assert utils.TEST_URL in default_map.records[-1].loc
+    assert utils.TEST_DATE_STR in default_map.records[-1].lastmod
     assert default_map.records[0].priority == 1.0
     assert default_map.records[1].priority == 0.3
     assert default_map.records[-1].priority == 0.9
@@ -160,16 +158,16 @@ def test_default_prepare_data_dynamic(default_map):
 
 @pytest.mark.parametrize('prefix', ['', '/', '/prefix', '/pr_e/f1x/'])
 @pytest.mark.parametrize('suffix', ['', '/', '/suffix'])
-@pytest.mark.parametrize('model', [ORMModel, local_model])
+@pytest.mark.parametrize('model', [utils.ORMModel, 'local_model'])
 def test_default_replace_patterns(default_map, prefix, suffix, model):
     """Tests Record item data"""
     uri = prefix + '/<slug>'
-    slug = '/' + ORMModel.query.all()[0].slug
-    default_map.add_rule(prefix, ORMModel, loc_attr='slug', lastmod_attr='updated', priority=0.7)
+    slug = '/' + utils.ORMModel.query.all()[0].slug
+    default_map.add_rule(prefix, utils.ORMModel, loc_attr='slug', lastmod_attr='updated', priority=0.7)
     prefix = prefix if prefix.endswith('/') else prefix + '/'
     rec = default_map._replace_patterns(uri, [prefix, suffix])[0]
     assert rec.loc == join_url_path(default_map.url, prefix, slug, suffix)
-    assert rec.lastmod == TEST_TIME_STR
+    assert rec.lastmod == utils.TEST_TIME_STR
     assert rec.priority == 0.7
 
 
@@ -179,9 +177,9 @@ def test_default_build_static(default_map, priority):
     filename = 'static.xml'
     default_map.filename = filename
     default_map.config.ALTER_PRIORITY = priority
-    default_map.config.IGNORED.update(DYNAMIC_URLS)
-    default_map.build_static(TEST_FOLDER)
-    file = os.path.join(TEST_FOLDER, filename)
+    default_map.config.IGNORED.update(utils.DYNAMIC_URLS)
+    default_map.build_static(utils.TEST_FOLDER)
+    file = os.path.join(utils.TEST_FOLDER, filename)
     assert os.path.exists(file)
 
 

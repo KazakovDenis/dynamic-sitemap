@@ -1,6 +1,6 @@
 from .config import SitemapConfig
-from .main import SitemapMeta, SimpleSitemap, SimpleSitemapIndex
-from .flask_map import FlaskSitemap
+from .contrib.flask import FlaskSitemap
+from .core import SimpleSitemap, SimpleSitemapIndex
 from .validators import ChangeFreq
 
 

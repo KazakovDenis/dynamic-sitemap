@@ -44,31 +44,43 @@ Then run your server and visit http://mysite.com/sitemap.xml.
 
 Basic example with some Models:
 ```python
-from flask import Flask
 from dynamic_sitemap import FlaskSitemap
+from flask import Flask
 from models import Post, Tag
 
 app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
-sitemap.config.IGNORED.update(['/edit', '/upload'])
-sitemap.config.TEMPLATE_FOLDER = 'templates'
+sitemap.config.IGNORED.update(['/edit', '/upload'])    # type: set
 sitemap.config.TIMEZONE = 'Europe/Moscow'
-sitemap.update()
-sitemap.add_elem('/faq', changefreq='monthly', priority=0.4)
+sitemap.add_items([
+    '/contacts',
+    {'loc': '/faq', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
+])
 sitemap.add_rule('/blog', Post, lastmod_attr='created', priority=1.0)
 sitemap.add_rule('/blog/tag', Tag, changefreq='daily')
+sitemap.build()
 ```
 
 Also you can set configurations from your class (and __it's preferred__):
+
 ```python
+from dynamic_sitemap import ChangeFreq, FlaskSitemap
+from flask import Flask
+from models import Product
+
 class Config:
-    TEMPLATE_FOLDER = os.path.join(ROOT, 'app', 'templates')
+    FILENAME = 'static/sitemap.xml'
     IGNORED = {'/admin', '/back-office', '/other-pages'}
     ALTER_PRIORITY = 0.1
 
+app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
-sitemap.add_elem('/about', changefreq='monthly', priority=0.4)
+sitemap.add_items([
+    '/contacts',
+    {'loc': '/about', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
+])
 sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
+sitemap.build()
 ```
 
 Some important rules:  

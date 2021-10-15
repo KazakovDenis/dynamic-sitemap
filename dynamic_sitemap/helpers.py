@@ -5,7 +5,7 @@ from pytz import timezone
 from typing import Callable, Iterable, Iterator, Tuple, Collection, Type, List
 from urllib.parse import urlparse, urljoin
 
-from .exceptions import SitemapItemError
+from .exceptions import SitemapItemError, SitemapValidationError
 from .items import SitemapItemBase
 
 
@@ -13,10 +13,10 @@ PathModel = namedtuple('PathModel', 'model attrs')
 _Row = namedtuple('Row', 'slug lastmod')
 
 _QUERIES = {
-    'django': 'model.objects.all()',
-    'peewee': 'model.select()',
-    'sqlalchemy': 'model.query.all()',
-    'local': 'model.all()',
+    'django': lambda model: model.objects.all(),
+    'peewee': lambda model: model.select(),
+    'sqlalchemy': lambda model: model.query.all(),
+    'local': lambda model: model.all(),
 }
 
 
@@ -58,7 +58,6 @@ def check_url(url: str) -> str:
 
 def join_url_path(base_url: str, *path: str) -> str:
     """Appends parts of a path to a base_url"""
-
     if not path:
         return base_url
 
@@ -81,7 +80,7 @@ def get_iso_datetime(dt: datetime, tz: str = None) -> str:
     return dt.astimezone(tz).isoformat(timespec='seconds')
 
 
-def get_query(orm_name: str = None) -> str:
+def get_query(orm_name: str = None) -> Callable:
     """Returns ORM query which evaluation returning Records"""
     if orm_name is None:
         return _QUERIES['local']
@@ -90,10 +89,9 @@ def get_query(orm_name: str = None) -> str:
         orm = orm_name.casefold()
         if orm in _QUERIES:
             return _QUERIES[orm]
-        else:
-            raise NotImplementedError('ORM is not supported yet: ' + orm_name)
 
-    raise TypeError('"orm" argument should be str or None')
+        raise SitemapValidationError('ORM is not supported yet: ' + orm_name)
+    raise SitemapValidationError('"orm" argument should be str or None')
 
 
 def set_debug_level(logger: Logger):
