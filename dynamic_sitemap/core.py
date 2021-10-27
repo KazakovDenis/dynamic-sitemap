@@ -177,7 +177,10 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         :param changefreq: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """
-        priority = round(priority or 0.0, 1)
+        try:
+            priority = round(priority or 0.0, 1)
+        except TypeError:
+            raise SitemapValidationError('Priority should be float.')
         get_validated(loc=path, changefreq=changefreq, priority=priority)
 
         for attr in (loc_from, lastmod_from if lastmod_from else loc_from,):

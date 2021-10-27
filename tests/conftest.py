@@ -10,7 +10,7 @@ from dynamic_sitemap.helpers import Model
 from .utils import DEFAULT_URLS, TEST_FOLDER, TEST_URL
 
 
-class EmptyMap(DynamicSitemapBase):
+class EmptySitemap(DynamicSitemapBase):
 
     def get_rules(self) -> list:
         return []
@@ -19,7 +19,7 @@ class EmptyMap(DynamicSitemapBase):
         return 'response'
 
 
-class TestSitemap(EmptyMap):
+class TestSitemap(EmptySitemap):
 
     def get_rules(self):
         return list(DEFAULT_URLS)
@@ -45,12 +45,12 @@ def config():
 
 @pytest.fixture
 def empty_map_cls(config):
-    return EmptyMap
+    return EmptySitemap
 
 
 @pytest.fixture
 def empty_map(config):
-    return EmptyMap(TEST_URL, config=config, orm='sqlalchemy')
+    return EmptySitemap(TEST_URL, config=config, orm='sqlalchemy')
 
 
 @pytest.fixture

@@ -2,6 +2,7 @@ from io import BytesIO
 from typing import Collection
 from xml.etree import ElementTree
 
+from .exceptions import SitemapValidationError
 from .items import SitemapIndexItem, SitemapItem, SitemapItemBase
 
 
@@ -38,6 +39,9 @@ class XMLRendererBase(RendererBase):
 
     def write(self, filename: str):
         """Write a sitemap to a file."""
+        if filename is None:
+            raise SitemapValidationError('Filename is not provided.')
+
         tree = self.get_tree()
         tree.write(filename, xml_declaration=True, encoding='UTF-8')
 

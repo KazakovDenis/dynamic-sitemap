@@ -48,11 +48,11 @@ class Model:
 def check_url(url: str) -> str:
     """Checks URL correct"""
     if not isinstance(url, str):
-        raise TypeError('URL should be a string')
+        raise SitemapValidationError('URL should be a string')
 
     parsed = urlparse(url)
     if not all([parsed.scheme, parsed.netloc]):
-        raise ValueError('Wrong URL. It should have a scheme and a hostname: ' + url)
+        raise SitemapValidationError('Wrong URL. It should have a scheme and a hostname: ' + url)
     return url
 
 

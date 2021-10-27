@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Union
 
 from . import helpers
+from .exceptions import SitemapValidationError
 from .validators import *
 
 
@@ -61,7 +62,7 @@ class SitemapConfig(dict):
                 if key.isupper():
                     self[key] = getattr(obj, key)
         else:
-            raise NotImplementedError('This type of object is not supported yet')
+            raise SitemapValidationError('This type of object is not supported yet')
 
     @staticmethod
     def _validate(obj):
@@ -80,7 +81,7 @@ class SitemapConfig(dict):
             assert obj.CACHE_PERIOD > 0.0, msg
 
     def __set__(self, instance, value):
-        raise PermissionError(
+        raise SitemapValidationError(
             'You could not change configuration this way. Use "from_object" method or set specific attribute'
         )
 
