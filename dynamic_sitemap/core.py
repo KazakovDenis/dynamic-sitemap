@@ -270,13 +270,9 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
     def _exclude(self) -> list:
         """Excludes URIs in config.IGNORED from self.rules"""
         public_uris = self.rules
-        logger.debug(f'Rules before exclusion: {len(public_uris)}')
-
         for item in self.config.IGNORED:
-            public_uris = [uri for uri in self.rules if item not in uri]
-
-        logger.debug(f'Rules left: {len(public_uris)}')
-        return public_uris
+            public_uris = filter(lambda x: not x.startswith(item), public_uris)
+        return list(public_uris)
 
     def _replace_patterns(self, uri: str, splitted: List[str]) -> List[SitemapItem]:
         """Replaces '/<converter:name>/...' with real URIs
@@ -314,4 +310,5 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
 
     def _get_index(self):
         """Get default index page."""
-        return SitemapItem(self.url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
+        url = urljoin(self.url, '/')
+        return SitemapItem(url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)

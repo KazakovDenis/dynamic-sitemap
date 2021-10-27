@@ -38,7 +38,7 @@ class Model:
         sitemap.add_rule('/post', post, loc_attr='slug', lastmod_attr='lastmod')   # should be only 'slug' and 'lastmod'
     """
 
-    def __init__(self, extractor: Callable[[], Iterable[Tuple[str, datetime]]]):
+    def __init__(self, extractor: Callable[..., Iterable[Tuple[str, datetime]]]):
         self.extract = extractor
 
     def all(self) -> Iterator[_Row]:

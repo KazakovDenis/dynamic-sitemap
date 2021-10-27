@@ -1,10 +1,10 @@
 import pytest
 
 from dynamic_sitemap import SitemapConfig
-from dynamic_sitemap.core import DynamicSitemapBase
+from dynamic_sitemap.exceptions import SitemapIOError, SitemapValidationError
 from dynamic_sitemap.validators import get_validated
 
-from ..utils import TRUE_INSTANCES, TEST_URL, ORMModel, WRONG_FOLDER, DYNAMIC_URLS
+from ..utils import TRUE_INSTANCES, TEST_URL, ORMModel
 
 
 @pytest.mark.parametrize('obj', TRUE_INSTANCES)
@@ -26,13 +26,13 @@ def test_config_set(default_map):
     pytest.param(b'Wrong URL type', None, None, TypeError, id='Wrong URL argument type'),
     pytest.param('Wrong URL', None, None, ValueError, id='Wrong URL'),
     pytest.param(TEST_URL, 'Wrong config type', None, NotImplementedError, id='Wrong config type'),
-    pytest.param(TEST_URL, None, b'Wrong ORM type', TypeError, id='Wrong ORM argument type'),
-    pytest.param(TEST_URL, None, 'Unknown ORM', NotImplementedError, id='Unknown ORM'),
+    pytest.param(TEST_URL, None, b'Wrong ORM type', SitemapValidationError, id='Wrong ORM argument type'),
+    pytest.param(TEST_URL, None, 'Unknown ORM', SitemapValidationError, id='Unknown ORM'),
 ])
-def test_default_create_map(url, orm, config, error):
+def test_default_create_map(empty_map_cls, url, orm, config, error):
     """Test exceptions while init"""
     with pytest.raises(error):
-        DynamicSitemapBase(url, config=config, orm=orm)
+        empty_map_cls(url, config=config, orm=orm)
 
 
 @pytest.mark.parametrize('priority, error', [
@@ -53,7 +53,7 @@ def test_default_add_rule_priority(default_map, priority, error):
     pytest.param('slug', 'no_such_attr', id='Wrong "lastmod" attribute'),
 ])
 def test_default_add_rule_no_attr(default_map, slug, lastmod):
-    with pytest.raises(AttributeError):
+    with pytest.raises(SitemapValidationError):
         default_map.add_rule('/blog/', ORMModel, loc_from=slug, lastmod_from=lastmod)
 
 
@@ -85,14 +85,13 @@ def test_default_validate_priority(default_map, priority):
         get_validated(priority=priority)
 
 
-@pytest.mark.parametrize('path, error', [
-    pytest.param(None, AssertionError, id='No folder set'),
-    pytest.param(WRONG_FOLDER, FileNotFoundError, id='Wrong folder in config'),
-    pytest.param(None, FileNotFoundError, id='Wrong path in arguments'),
+@pytest.mark.parametrize('fn1, fn2, error', [
+    pytest.param('/access/denied.xml', None, SitemapIOError, id='Wrong filename in config'),
+    pytest.param(None, '/access/denied.xml', SitemapIOError, id='Wrong filename in arguments'),
 ])
-def test_default_build_static(default_map, path, error):
+def test_default_build_static(empty_map, fn1, fn2, error):
     """Tests raising exceptions with no or wrong path set"""
-    default_map.filename = 'static.xml'
-    default_map.config.IGNORED.update(DYNAMIC_URLS)
+    empty_map.config.FILENAME = fn1
+    empty_map.build()
     with pytest.raises(error):
-        default_map.write(path)
+        empty_map.write(fn2)

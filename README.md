@@ -38,7 +38,7 @@ from dynamic_sitemap import FlaskSitemap
 
 app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://mysite.com')
-sitemap.update()
+sitemap.build()
 ```
 Then run your server and visit http://mysite.com/sitemap.xml.  
 
@@ -74,12 +74,12 @@ class Config:
     ALTER_PRIORITY = 0.1
 
 app = Flask(__name__)
-sitemap = FlaskSitemap(app, 'https://myshop.org', config_obj=Config)
+sitemap = FlaskSitemap(app, 'https://myshop.org', config=Config)
 sitemap.add_items([
     '/contacts',
     {'loc': '/about', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
 ])
-sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
+sitemap.add_rule('/goods', Product, loc_from='id', lastmod_from='updated')
 sitemap.build()
 ```
 
