@@ -1,4 +1,5 @@
 from io import BytesIO
+from operator import attrgetter
 from typing import Collection
 from xml.etree import ElementTree
 
@@ -48,7 +49,7 @@ class XMLRendererBase(RendererBase):
     def get_tree(self) -> ElementTree.ElementTree:
         url_set = self.get_set()
 
-        for item in self.items:
+        for item in sorted(self.items, key=attrgetter('loc')):
             url_set.append(item.as_xml())
 
         return ElementTree.ElementTree(url_set)

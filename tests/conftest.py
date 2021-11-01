@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 
 import pytest
@@ -7,22 +6,16 @@ from dynamic_sitemap.core import DynamicSitemapBase
 from dynamic_sitemap.config import SitemapConfig
 from dynamic_sitemap.helpers import Model
 
-from .utils import DEFAULT_URLS, TEST_FOLDER, TEST_URL
+from .utils import TEST_URL
 
 
-class EmptySitemap(DynamicSitemapBase):
+class TestSitemap(DynamicSitemapBase):
 
-    def get_rules(self) -> list:
+    def _get_rules(self) -> list:
         return []
 
     def view(self):
         return 'response'
-
-
-class TestSitemap(EmptySitemap):
-
-    def get_rules(self):
-        return list(DEFAULT_URLS)
 
 
 @pytest.fixture
@@ -44,24 +37,11 @@ def config():
 
 
 @pytest.fixture
-def empty_map_cls(config):
-    return EmptySitemap
+def sitemap_cls(config):
+    return TestSitemap
 
 
 @pytest.fixture
-def empty_map(config):
-    return EmptySitemap(TEST_URL, config=config, orm='sqlalchemy')
-
-
-@pytest.fixture
-def default_map(config):
+def sitemap(config):
     # todo: test orm=None
     return TestSitemap(TEST_URL, config=config, orm='sqlalchemy')
-
-
-@pytest.fixture
-def remove_files():
-    yield
-    for file in os.listdir(TEST_FOLDER):
-        if file.rsplit('.', 1)[-1] == 'xml':
-            os.remove(os.path.join(TEST_FOLDER, file))

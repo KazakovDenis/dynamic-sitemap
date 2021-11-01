@@ -2,7 +2,7 @@ from collections import namedtuple
 from datetime import datetime
 from logging import Logger
 from pytz import timezone
-from typing import Callable, Iterable, Iterator, Tuple, Collection, Type, List
+from typing import Callable, Collection, Iterable, Iterator, Set, Tuple, Type, Optional
 from urllib.parse import urlparse, urljoin
 
 from .exceptions import SitemapItemError, SitemapValidationError
@@ -104,9 +104,14 @@ def set_debug_level(logger: Logger):
         handler.setLevel(10)
 
 
-def get_items(raw_data: Collection, cls: Type[SitemapItemBase], base_url: str = '') -> List[SitemapItemBase]:
+def get_items(raw_data: Collection,
+              cls: Type[SitemapItemBase],
+              base_url: str = '',
+              default_changefreq: Optional[str] = None,
+              default_priority: Optional[float] = None,
+              ) -> Set[SitemapItemBase]:
     """Get prepared sitemap items from a raw data."""
-    items = []
+    items = set()
 
     for item in raw_data:
         if isinstance(item, dict):
@@ -116,8 +121,11 @@ def get_items(raw_data: Collection, cls: Type[SitemapItemBase], base_url: str = 
         else:
             raise SitemapItemError('Bad item', item)
 
+        data.setdefault('changefreq', default_changefreq)
+        data.setdefault('priority', default_priority)
+
         if base_url:
             data['loc'] = urljoin(base_url, data['loc'])
-        items.append(cls(**data))
+        items.add(cls(**data))
 
     return items

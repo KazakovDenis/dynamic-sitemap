@@ -57,15 +57,14 @@ class SitemapConfig(dict):
 
         self._validate(obj)
 
-        if isinstance(obj, (type, type(self))):
-            for key in dir(obj):
-                if key.isupper():
-                    self[key] = getattr(obj, key)
-        else:
+        for key in dir(obj):
+            if key.isupper():
+                self[key] = getattr(obj, key)
+
+    def _validate(self, obj):
+        if not isinstance(obj, (type, type(self))):
             raise SitemapValidationError('This type of object is not supported yet')
 
-    @staticmethod
-    def _validate(obj):
         filename = getattr(obj, 'FILENAME', None)
         if filename:
             assert Path(filename).parent.exists()

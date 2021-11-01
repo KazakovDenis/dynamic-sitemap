@@ -66,7 +66,8 @@ class SitemapBase:
     def __init__(self, base_url: str = '', items: Sequence[Union[dict, str]] = ()):
         self.url = helpers.check_url(base_url)
         self.initial_items = list(items)
-        self.items = []
+        self.initialized = False
+        self.items = set()
 
     def render(self) -> str:
         """Get a string sitemap representation."""
@@ -87,11 +88,12 @@ class SitemapBase:
 
     def add_items(self, items: Sequence[Union[dict, str]]):
         """Add static items to a sitemap."""
-        if self.items:
+        if self.initialized:
             raise SitemapItemError('Sitemap has already been initialized.')
         self.initial_items.extend(items)
 
     def _get_renderer(self) -> RendererBase:
+        self.initialized = True
         return self.renderer_cls(self._get_items())
 
     def _get_items(self):
@@ -120,9 +122,33 @@ class ConfigurableSitemap(SimpleSitemap):
     def __init__(self, base_url: str = '', items: Sequence[Union[dict, str]] = (), config: conf.ConfType = None):
         super().__init__(base_url, items)
         self.config.from_object(config)
+        self.started_at = helpers.get_iso_datetime(datetime.now(), self.config.TIMEZONE)
 
     def write(self, filename: str = ''):
         super().write(filename or self.config.FILENAME)
+
+    def _get_items(self):
+        if self.initialized:
+            return self.items
+
+        self.items = helpers.get_items(
+            self.initial_items,
+            self.item_cls,
+            self.url,
+            self.config.ALTER_CHANGES,
+            self.config.ALTER_PRIORITY,
+        )
+        self.items.add(self._get_index())
+        return self.items
+
+    def _get_index(self):
+        """Get default index page."""
+        return SitemapItem(
+            urljoin(self.url, '/'),
+            self.started_at,
+            self.config.INDEX_CHANGES,
+            self.config.INDEX_PRIORITY,
+        )
 
 
 RULE_EXP = re.compile(r'<(\w+:)?\w+>')
@@ -144,10 +170,16 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         """
         super().__init__(base_url, items, config)
         self.fetch = helpers.get_query(orm)
-        self.start = None
-        self.rules = None
+        self._rules = []
         self._models = {}
+        self._dynamic_items = set()
         self._cached_at = datetime.now()
+        self.cache_period = timedelta(0)
+
+        if self.config.CACHE_PERIOD:
+            hours = int(self.config.CACHE_PERIOD)
+            minutes = round((self.config.CACHE_PERIOD - hours) * 60)
+            self.cache_period = timedelta(hours=hours, minutes=minutes)
 
     def build(self):
         """Prepare a sitemap to be rendered or written to a file.
@@ -157,9 +189,9 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
             sitemap.add_items(['/about', '/contacts'])
             sitemap.build()
         """
-        self.start = helpers.get_iso_datetime(datetime.now(), self.config.TIMEZONE)
-        self.rules = self.get_rules()
+        self._get_rules()
         self._get_items()
+        self.initialized = True
 
     def add_rule(self,
                  path: str,
@@ -187,10 +219,7 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
             try:
                 getattr(model, attr)
             except AttributeError:
-                msg = (
-                    f'Incorrect attributes are set for the model "{model}" in add_rule():\n'
-                    f'loc_from = {loc_from} and/or lastmod_from = {lastmod_from}'
-                )
+                msg = f'Incorrect attribute set for the model "{model}": {attr}'
                 logger.exception(msg)
                 raise SitemapValidationError(msg)
 
@@ -208,47 +237,30 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         )
 
     @abstractmethod
-    def get_rules(self) -> list:
-        """The method to override. Should return a list of URL rules."""
-
-    @abstractmethod
     def view(self, *args, **kwargs):
         """The method to override. Should return HTTP response."""
 
-    def get_dynamic_rules(self) -> list:
-        """Return all urls should be added as a rule or to ignored list."""
-        return [i for i in self.rules if RULE_EXP.search(i)]
-
     def _get_items(self):
+        dynamic_items = self._get_dynamic_items()
+        static_items = super()._get_items()
+        self.items = dynamic_items ^ static_items
+        return self.items
+
+    def _get_dynamic_items(self):
         """Prepares data to be used by renderer."""
         if self._should_use_cache():
             logger.debug('Using existing data')
-            return
+            return self._dynamic_items
 
-        dynamic_data = set()
-        uris = self._exclude()
+        self._dynamic_items.clear()
 
-        for uri in uris:
-            logger.debug(f'Preparing Records for {uri}')
-            splitted = RULE_EXP.split(uri, maxsplit=1)
+        for rule in self._without_ignored():
+            logger.debug(f'Preparing items for {rule}')
+            splitted = RULE_EXP.split(rule, maxsplit=1)
+            replaced = self._replace_patterns(rule, splitted)
+            self._dynamic_items.update(replaced)
 
-            if len(splitted) > 1:
-                replaced = self._replace_patterns(uri, splitted)
-                dynamic_data.update(replaced)
-            else:
-                static_record = SitemapItem(
-                    urljoin(self.url, uri), self.start, self.config.ALTER_CHANGES, self.config.ALTER_PRIORITY
-                )
-                dynamic_data.add(static_record)
-
-        static_data = super()._get_items()
-        dynamic_data.update(static_data)
-        dynamic_data.add(self._get_index())
-
-        self.items = iter(sorted(dynamic_data, key=lambda r: r.loc))
-        self._cached_at = datetime.now()
-        logger.debug('Data for the sitemap is updated')
-        return self.items
+        return self._dynamic_items
 
     def _should_use_cache(self) -> bool:
         """Checks whether to use cache or to update data"""
@@ -256,26 +268,25 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
             logger.debug('Data is not ready yet')
             return False
 
-        if not self.config.CACHE_PERIOD:
-            # caching disabled
+        if (self._cached_at + self.cache_period) < datetime.now():
+            logger.debug('Updating sitemap cache')
             return False
 
-        hours = int(self.config.CACHE_PERIOD)
-        minutes = round((self.config.CACHE_PERIOD - hours) * 60)
-        time_to_cache = self._cached_at + timedelta(hours=hours, minutes=minutes)
-
-        if time_to_cache < datetime.now():
-            logger.debug('Updating data cache...')
-            return False
-
+        logger.debug('Using sitemap cache')
         return True
 
-    def _exclude(self) -> list:
+    def _get_rules(self) -> list:
+        """The method to override. Should return a list of URL rules."""
+        if not self._rules:
+            self._rules = []
+        return self._rules
+
+    def _without_ignored(self) -> list:
         """Excludes URIs in config.IGNORED from self.rules"""
-        public_uris = self.rules
-        for item in self.config.IGNORED:
-            public_uris = filter(lambda x: not x.startswith(item), public_uris)
-        return list(public_uris)
+        paths = self._rules
+        for ignored in self.config.IGNORED:
+            paths = list(filter(lambda x: not x.startswith(ignored), paths))
+        return paths
 
     def _replace_patterns(self, uri: str, splitted: List[str]) -> List[SitemapItem]:
         """Replaces '/<converter:name>/...' with real URIs
@@ -286,7 +297,6 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         """
 
         prefix, suffix = splitted[0], splitted[-1]
-
         if not self._models.get(prefix):
             raise SitemapValidationError(
                 f"Add pattern '{uri}' or it's part to ignored or add a new rule with a path '{prefix}'",
@@ -310,8 +320,3 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
 
         logger.debug(f'Included {len(prepared)} items')
         return prepared
-
-    def _get_index(self):
-        """Get default index page."""
-        url = urljoin(self.url, '/')
-        return SitemapItem(url, self.start, self.config.INDEX_CHANGES, self.config.INDEX_PRIORITY)
