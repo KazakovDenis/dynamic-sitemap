@@ -43,7 +43,7 @@ def flask_client(flask_app):
 
 def test_flask_get_rules(flask_map):
     """Test rules generation."""
-    assert flask_map.get_rules()
+    assert '/sitemap.xml' in flask_map.get_rules()
 
 
 def test_flask_render(flask_map):

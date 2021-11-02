@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-This module provides a tool to generate a Sitemap of a Flask application.
+"""This module provides a tool to generate a Sitemap of a Flask application.
 
 'Hello world' example:
 
@@ -19,14 +17,14 @@ Basic example with some Models:
 
     app = Flask(__name__)
     sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
-    sitemap.config.IGNORED.update(['/edit', '/upload'])
     sitemap.config.ALTER_PRIORITY = 0.1
-    sitemap.add_items(['/faq', {'loc': '/about', 'priority': 0.7}])
+    sitemap.ignore('/edit', '/upload')
+    sitemap.add_items('/faq', {'loc': '/about', 'priority': 0.7})
     sitemap.add_rule('/blog', Post, lastmod_from='created', priority=1.0)
     sitemap.add_rule('/blog/tag', Tag, changefreq=ChangeFreq.DAILY.value)
     sitemap.build()
 
-IGNORED has a priority over add_rule. Also you can set configurations from your class:
+Also you can set configurations from your class:
 
     class Config:
         FILENAME = 'static/sitemap.xml'
@@ -34,11 +32,11 @@ IGNORED has a priority over add_rule. Also you can set configurations from your 
         CONTENT_PRIORITY = 0.7
 
     sitemap = FlaskSitemap(app, 'https://myshop.org', config=Config)
-    sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
+    sitemap.add_rule('/goods', Product, loc_from='id', lastmod_from='updated')
     sitemap.write()
 """
 import logging
-from typing import Sequence, Union
+from typing import Sequence, Union, List
 
 from ..config import ConfType
 from ..core import DynamicSitemapBase
@@ -54,7 +52,7 @@ logger = logging.getLogger(__name__)
 
 
 class FlaskSitemap(DynamicSitemapBase):
-    """A sitemap generator for a Flask application. For usage see the module documentation"""
+    """A sitemap generator for a Flask application. For usage see the module documentation."""
     endpoint = 'dynamic_sitemap'
     rule = '/sitemap.xml'
 
@@ -75,19 +73,19 @@ class FlaskSitemap(DynamicSitemapBase):
         super().__init__(base_url, items, config, orm)
         self.app = app
 
-        if orm and not app.extensions.get(orm):
+        if orm and not app.extensions.get(orm.casefold()):
             raise SitemapValidationError(f'{orm} extension is not found')
         app.add_url_rule(self.rule, self.endpoint, self.view)
 
-    def get_rules(self) -> list:
-        """Return a list of URL rules"""
+    def get_rules(self) -> List[str]:
+        """Return a list of URL rules."""
         return [
             rule_obj.rule for rule_obj in self.app.url_map.iter_rules()
             if 'GET' in rule_obj.methods
         ]
 
     def view(self):
-        """Generate a response such as Flask views do"""
+        """Generate a response such as Flask views do."""
         from flask import make_response, request
 
         self._get_items()

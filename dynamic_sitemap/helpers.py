@@ -1,6 +1,5 @@
 from collections import namedtuple
 from datetime import datetime
-from logging import Logger
 from pytz import timezone
 from typing import Callable, Collection, Iterable, Iterator, Set, Tuple, Type, Optional
 from urllib.parse import urlparse, urljoin
@@ -35,7 +34,8 @@ class Model:
 
         post = Model(extract_posts)
         sitemap = FlaskSitemap(app, 'https://mysite.com', orm=None)
-        sitemap.add_rule('/post', post, loc_attr='slug', lastmod_attr='lastmod')   # should be only 'slug' and 'lastmod'
+        # should be only 'slug' and 'lastmod'
+        sitemap.add_rule('/post', post, loc_from='slug', lastmod_from='lastmod')
     """
 
     def __init__(self, extractor: Callable[..., Iterable[Tuple[str, datetime]]]):
@@ -46,7 +46,7 @@ class Model:
 
 
 def check_url(url: str) -> str:
-    """Checks URL correct"""
+    """Check URL correct."""
     if not isinstance(url, str):
         raise SitemapValidationError('URL should be a string')
 
@@ -57,7 +57,7 @@ def check_url(url: str) -> str:
 
 
 def join_url_path(base_url: str, *path: str) -> str:
-    """Appends parts of a path to a base_url"""
+    """Append parts of a path to a base_url."""
     if not path:
         return base_url
 
@@ -72,7 +72,7 @@ def join_url_path(base_url: str, *path: str) -> str:
 
 
 def get_iso_datetime(dt: datetime, tz: str = None) -> str:
-    """Returns the time with a timezone formatted according to W3C datetime format"""
+    """Return the time with a timezone formatted according to W3C datetime format."""
     if tz is None:
         return dt.isoformat(timespec='seconds')
 
@@ -81,7 +81,7 @@ def get_iso_datetime(dt: datetime, tz: str = None) -> str:
 
 
 def get_query(orm_name: str = None) -> Callable:
-    """Returns ORM query which evaluation returning Records"""
+    """Return ORM query which evaluation returning Records."""
     if orm_name is None:
         return _QUERIES['local']
 
@@ -92,16 +92,6 @@ def get_query(orm_name: str = None) -> Callable:
 
         raise SitemapValidationError('ORM is not supported yet: ' + orm_name)
     raise SitemapValidationError('"orm" argument should be str or None')
-
-
-def set_debug_level(logger: Logger):
-    """Sets up logger and its handlers levels to Debug
-
-    :param logger: an instance of logging.Logger
-    """
-    logger.setLevel(10)
-    for handler in logger.handlers:
-        handler.setLevel(10)
 
 
 def get_items(raw_data: Collection,
