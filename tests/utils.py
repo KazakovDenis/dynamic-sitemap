@@ -1,6 +1,8 @@
 from datetime import datetime
 from unittest.mock import Mock
 
+from dynamic_sitemap.core import DynamicSitemapBase
+
 
 PY_TYPES = int, float, complex, tuple, list, set, dict, str, bytes, bytearray
 FALSE_INSTANCES = (py_type() for py_type in PY_TYPES)
@@ -18,4 +20,13 @@ QUERYSET = Mock(
     ],
 )
 
-ORMModel = Mock(objects=QUERYSET, select=QUERYSET.all, query=QUERYSET)
+ORMModel = Mock(name='ORMModel', objects=QUERYSET, select=QUERYSET.all, query=QUERYSET)
+
+
+class SitemapMock(DynamicSitemapBase):
+
+    def _get_rules(self) -> list:
+        return []
+
+    def view(self):
+        return 'response'

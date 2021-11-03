@@ -2,25 +2,14 @@ from datetime import datetime
 
 import pytest
 
-from dynamic_sitemap.core import DynamicSitemapBase
 from dynamic_sitemap.config import SitemapConfig
 from dynamic_sitemap.helpers import Model
 
-from .utils import TEST_URL
-
-
-class TestSitemap(DynamicSitemapBase):
-
-    def _get_rules(self) -> list:
-        return []
-
-    def view(self):
-        return 'response'
+from .utils import TEST_URL, SitemapMock
 
 
 @pytest.fixture
 def local_model():
-    """Creates an instance of helpers.Model"""
     def extractor():
         return [('slug1', datetime(2020, 1, 1)), ('slug2', datetime(2020, 2, 2))]
 
@@ -32,16 +21,14 @@ def local_model():
 
 @pytest.fixture
 def config():
-    """Creates an instance of a basis sitemap object"""
     return SitemapConfig()
 
 
 @pytest.fixture
 def sitemap_cls(config):
-    return TestSitemap
+    return SitemapMock
 
 
 @pytest.fixture
 def sitemap(config):
-    # todo: test orm=None
-    return TestSitemap(TEST_URL, config=config, orm='sqlalchemy')
+    return SitemapMock(TEST_URL, config=config, orm='sqlalchemy')

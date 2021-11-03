@@ -9,7 +9,7 @@ import pytest
 from dynamic_sitemap import SitemapConfig, ChangeFreq
 from dynamic_sitemap.helpers import join_url_path
 from dynamic_sitemap.items import SitemapItem
-from tests.utils import TEST_DATE_STR, TEST_TIME_STR, TEST_URL, ORMModel
+from tests.utils import TEST_DATE_STR, TEST_TIME_STR, TEST_URL, ORMModel, SitemapMock
 
 
 @pytest.mark.parametrize('obj', [
@@ -35,10 +35,28 @@ def test_item_as_xml():
     assert children[3].text == '0.7'
 
 
+def test_queries_no_orm(local_model):
+    sitemap = SitemapMock(TEST_URL, orm=None)
+    sitemap._rules = ['/rule/<slug>/']
+    sitemap.add_rule('/rule', local_model, loc_from='slug')
+    sitemap.build()
+    assert sitemap.initialized
+
+
+@pytest.mark.parametrize('orm', ['sqlalchemy', 'SQLAlchemy', 'django', 'peewee'])
+def test_queries_with_orm(orm):
+    sitemap = SitemapMock(TEST_URL, orm=orm)
+    sitemap._rules = ['/rule/<slug>/']
+    sitemap.add_rule('/rule', ORMModel, loc_from='slug')
+    sitemap.build()
+    assert sitemap.initialized
+
+
 def test_default_build(sitemap, monkeypatch):
     """Test building without problems only."""
     monkeypatch.setattr(sitemap, '_without_ignored', lambda: [])
     sitemap.build()
+    assert sitemap.initialized
 
 
 def test_default_add_items(sitemap, monkeypatch):
