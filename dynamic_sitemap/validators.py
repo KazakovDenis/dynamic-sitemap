@@ -104,8 +104,8 @@ class ChangeFrequency(Parameter):
             return None
 
         if not (
-            isinstance(value, str) and
-            (value.casefold() in ChangeFreq.values())
+            isinstance(value, str)
+            and (value.casefold() in ChangeFreq.values())
         ):
             raise SitemapValidationError(
                 'Change frequency should be one of the following: ' + ', '.join(ChangeFreq.values()),
@@ -123,8 +123,8 @@ class Priority(Parameter):
             return None
 
         if not (
-            isinstance(value, (int, float)) and
-            (0.0 < value <= 1.0)
+            isinstance(value, (int, float))
+            and (0.0 < value <= 1.0)
         ):
             raise SitemapValidationError('Priority should be a float between 0.0 and 1.0')
         return value

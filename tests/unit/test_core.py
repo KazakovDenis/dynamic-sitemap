@@ -8,7 +8,6 @@ import pytest
 
 from dynamic_sitemap import SitemapConfig, ChangeFreq
 from dynamic_sitemap.helpers import join_url_path
-from dynamic_sitemap.items import SitemapItem
 from tests.utils import TEST_DATE_STR, TEST_TIME_STR, TEST_URL, ORMModel, SitemapMock
 
 
@@ -23,16 +22,6 @@ def test_config_from_obj(config, obj):
     config.from_object(obj)
     assert hasattr(config, 'TEST')
     assert config['ALTER_PRIORITY'] == 0.4
-
-
-def test_item_as_xml():
-    """Test Item returns a correct XML object"""
-    item = SitemapItem(loc='/path', lastmod='2020-01-01', changefreq='daily', priority=0.7).as_xml()
-    children = item.getchildren()
-    assert children[0].text == '/path'
-    assert children[1].text == '2020-01-01'
-    assert children[2].text == 'daily'
-    assert children[3].text == '0.7'
 
 
 def test_queries_no_orm(local_model):

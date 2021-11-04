@@ -191,9 +191,9 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
             model=model,
             attrs={
                 'loc_from': loc_from,
-                'lastmod_from':  lastmod_from,
+                'lastmod_from': lastmod_from,
                 'changefreq': changefreq or self.config.CONTENT_CHANGES,
-                'priority':  priority or self.config.CONTENT_PRIORITY,
+                'priority': priority or self.config.CONTENT_PRIORITY,
             }
         )
 

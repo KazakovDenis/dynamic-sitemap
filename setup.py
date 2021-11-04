@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from setuptools import setup
 from dynamic_sitemap import __about__ as about
 
@@ -15,14 +15,11 @@ if __name__ == '__main__':
         author_email=about['__email__'],
         url=about['__url__'],
         license=about['__license__'],
-        description='Sitemap generator for Python frameworks',
+        description='The sitemap generator for Python projects.',
         long_description=long_description,
         long_description_content_type='text/markdown',
         keywords='sitemap',
         packages=[about['__module__']],
-        package_data={
-            about['__module__']: ['templates/*'],
-        },
         install_requires=['pytz>=2020.1'],
         classifiers=[
             'Development Status :: 3 - Alpha',

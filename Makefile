@@ -8,10 +8,13 @@ coverage:
 	python -m coverage report
 	python -m coverage html
 
-release:
+build:
 	python setup.py sdist bdist_wheel
+
+release: build
+	twine check dist/*
 	twine upload --repository pypi dist/*
 
-test_release:
-	python setup.py sdist bdist_wheel
+test_release: build
+	twine check dist/*
 	twine upload --repository testpypi dist/*

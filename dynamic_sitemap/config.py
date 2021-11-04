@@ -7,7 +7,6 @@ from .validators import ChangeFrequency, Priority, Timezone
 
 
 ConfType = Union[type, 'SitemapConfig']
-DirPathType = Union[str, tuple, list]
 EXTENSION_ROOT = Path(__file__).parent.absolute()
 
 
@@ -70,8 +69,8 @@ class SitemapConfig(dict):
 
         cache_period = getattr(obj, 'CACHE_PERIOD', None)
         if cache_period and not (
-            isinstance(obj.CACHE_PERIOD, (int, float)) and
-            obj.CACHE_PERIOD > 0.0
+            isinstance(obj.CACHE_PERIOD, (int, float))
+            and obj.CACHE_PERIOD > 0.0
         ):
             raise SitemapValidationError('CACHE_PERIOD should be a float greater than 0.0')
 
