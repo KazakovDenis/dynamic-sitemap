@@ -1,5 +1,7 @@
 coverage
 flake8
+mypy
 pytest
 pytz
 twine
+types-pytz

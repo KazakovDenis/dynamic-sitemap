@@ -45,7 +45,7 @@ from ..exceptions import SitemapValidationError
 try:
     from flask import Flask
 except ImportError:
-    Flask = type
+    Flask = type    # type: ignore
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class FlaskSitemap(DynamicSitemapBase):
         """Return a list of URL rules."""
         return [
             rule_obj.rule for rule_obj in self.app.url_map.iter_rules()
-            if 'GET' in rule_obj.methods
+            if (rule_obj.methods and 'GET' in rule_obj.methods)
         ]
 
     def view(self):

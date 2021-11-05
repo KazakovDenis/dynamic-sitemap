@@ -1,6 +1,6 @@
 import enum
 from re import match, VERBOSE
-from typing import List, Optional, TypeVar, Union
+from typing import Generic, List, Optional, TypeVar, Union
 from urllib.parse import urlparse
 
 from pytz import UnknownTimeZoneError, timezone
@@ -25,18 +25,18 @@ class ChangeFreq(enum.Enum):
 Value = TypeVar('Value')
 
 
-class Parameter:
+class Parameter(Generic[Value]):
     """A descriptor to check configuration parameters values"""
     __slots__ = ('default', 'storage')
 
     def __init__(self, default: Optional[Value] = None):
         self.default = default
-        self.storage = {}
+        self.storage: dict = {}
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner) -> Value:
         return self.storage.get(id(instance), self.default)
 
-    def __set__(self, instance, value):
+    def __set__(self, instance, value: Value):
         self.storage[id(instance)] = self.validate(value)
 
     @classmethod
@@ -165,6 +165,6 @@ def get_validated(loc=None, lastmod=None, changefreq=None, priority=None) -> dic
         result['changefreq'] = ChangeFrequency.validate(changefreq)
 
     if priority:
-        result['priority'] = Priority.validate(priority)
+        result['priority'] = Priority.validate(priority)    # type: ignore
 
     return result

@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import Union, Optional
+from typing import Optional, Union
 
 from . import helpers
 from .exceptions import SitemapValidationError
 from .validators import ChangeFrequency, Priority, Timezone
 
 
-ConfType = Union[type, 'SitemapConfig']
+ConfType = Optional[Union[type, 'SitemapConfig']]
 EXTENSION_ROOT = Path(__file__).parent.absolute()
 
 
@@ -31,15 +31,15 @@ class SitemapConfig(dict):
     BASE_URL: str = ''
     IGNORED: set = {'/sitemap.xml', '/admin', '/static'}
     CACHE_PERIOD: Union[int, float] = 0
-    TIMEZONE: Optional[str] = Timezone(default=None)
+    TIMEZONE = Timezone(default=None)                 # str
 
-    INDEX_CHANGES: Optional[str] = ChangeFrequency(default=None)
-    CONTENT_CHANGES: Optional[str] = ChangeFrequency(default=None)
-    ALTER_CHANGES: Optional[str] = ChangeFrequency(default=None)
+    INDEX_CHANGES = ChangeFrequency(default=None)     # str
+    CONTENT_CHANGES = ChangeFrequency(default=None)   # str
+    ALTER_CHANGES = ChangeFrequency(default=None)     # str
 
-    INDEX_PRIORITY: Optional[float] = Priority(default=1.0)
-    CONTENT_PRIORITY: Optional[float] = Priority(default=None)
-    ALTER_PRIORITY: Optional[float] = Priority(default=None)
+    INDEX_PRIORITY = Priority(default=1.0)            # int | float
+    CONTENT_PRIORITY = Priority(default=None)         # int | float
+    ALTER_PRIORITY = Priority(default=None)           # int | float
 
     def from_object(self, obj: ConfType):
         """Updates values from the given object

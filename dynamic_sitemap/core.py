@@ -2,7 +2,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from datetime import timedelta, datetime
-from typing import List, Sequence, Type, Union
+from typing import List, Sequence, Type, Union, Set
 from urllib.parse import urljoin
 
 from . import config as conf, helpers
@@ -24,7 +24,7 @@ class SitemapBase:
         self.url = helpers.check_url(base_url)
         self.initial_items = list(items)
         self.initialized = False
-        self.items = set()
+        self.items = set()               # type: Set[Union[SitemapItem, SitemapIndexItem]]
 
     def render(self) -> str:
         """Get a string sitemap representation."""
@@ -131,9 +131,9 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         """
         super().__init__(base_url, items, config)
         self.fetch = helpers.get_query(orm)
-        self._rules = []
-        self._models = {}
-        self._dynamic_items = set()
+        self._rules = []                  # type: List[str]
+        self._models = {}                 # type: dict
+        self._dynamic_items = set()       # type: Set[SitemapItem]
         self._cached_at = datetime.now()
         self.cache_period = timedelta(0)
 

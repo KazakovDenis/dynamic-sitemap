@@ -1,5 +1,6 @@
 analyze:
 	flake8
+	mypy
 
 test:
 	python -m coverage run
