@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0a
+## 0.2.0a0
 - Separated rendering and URL collecting
 - Separated base classes
 - Added renderers

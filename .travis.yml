@@ -13,17 +13,11 @@ jobs:
   include:
     - stage: linters
       name: "Static code analysis"
-      before_install:
-        - sudo apt-get update
-        - sudo apt-get -y install make
       install: pip install -r tests/requirements/all.txt
       script: make analyze
 
     - stage: test
       name: "Run unit tests"
-      before_install:
-        - sudo apt-get update
-        - sudo apt-get -y install make
       install: pip install -r tests/requirements/all.txt
       script:
         - make test
@@ -45,4 +39,4 @@ stages:
   - linters
   - test
   - name: publish
-    if: branch = master
+    if: (branch = master) AND (tag IS present)

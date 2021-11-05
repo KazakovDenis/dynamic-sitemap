@@ -46,7 +46,7 @@ __author__ = 'Denis Kazakov'
 __about__ = dict(
     __title__='dynamic-sitemap',
     __module__=__package__,
-    __version__='0.2.0a',
+    __version__='0.2.0a0',
     __url__='https://github.com/KazakovDenis/dynamic-sitemap',
 
     __author__=__author__,
