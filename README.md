@@ -8,6 +8,7 @@ A simple sitemap generator for Python projects.
 
 Already implemented:
 - SimpleSitemap
+- SimpleSitemapIndex
 - FlaskSitemap
 
 ## Installation
@@ -27,14 +28,15 @@ urls = [
     {'loc': '/contacts', 'changefreq': ChangeFreq.NEVER.value},
     {'loc': '/about', 'priority': 0.9, 'lastmod': datetime.now().isoformat()},
 ]
-sitemap = SimpleSitemap(urls, 'https://mysite.com')
+sitemap = SimpleSitemap('https://mysite.com', urls)
 sitemap.write('static/sitemap.xml')
+# or sitemap.render()
 ```
 ### Dynamic
 Only FlaskSitemap is implemented yet, so there is an example:
 ```python
-from flask import Flask
 from dynamic_sitemap import FlaskSitemap
+from flask import Flask
 
 app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://mysite.com')
@@ -42,7 +44,7 @@ sitemap.build()
 ```
 Then run your server and visit http://mysite.com/sitemap.xml.  
 
-Basic example with some Models:
+The basic example with some Models:
 ```python
 from dynamic_sitemap import FlaskSitemap
 from flask import Flask
@@ -50,14 +52,14 @@ from models import Post, Tag
 
 app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
-sitemap.config.IGNORED.update(['/edit', '/upload'])    # type: set
 sitemap.config.TIMEZONE = 'Europe/Moscow'
+sitemap.ignore('/edit', '/upload')
 sitemap.add_items([
     '/contacts',
     {'loc': '/faq', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
 ])
-sitemap.add_rule('/blog', Post, lastmod_attr='created', priority=1.0)
-sitemap.add_rule('/blog/tag', Tag, changefreq='daily')
+sitemap.add_rule('/blog', Post, loc_from='slug', priority=1.0)
+sitemap.add_rule('/blog/tag', Tag, loc_from='id', changefreq='daily')
 sitemap.build()
 ```
 
@@ -83,13 +85,23 @@ sitemap.add_rule('/goods', Product, loc_from='id', lastmod_from='updated')
 sitemap.build()
 ```
 
-Some important rules:  
-- use update() method after setting configuration attributes directly (not need if you pass your config object to init)
-- use get_dynamic_rules() to see which urls you should add as a rule or to ignored
-- *config.IGNORED* has a priority over *add_rule*
-- use helpers.Model if your ORM is not supported
-
 Not supported yet:
 - urls with more than 1 converter, such as `/page/<int:user_id>/<str:slug>`
 
-Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/CHANGELOG.md)
+Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/CHANGELOG.md).  
+
+## Contributing
+Feel free to suggest any improvements :)  
+
+## Development
+Fork this repository, clone it and install dependencies:
+```shell
+pip install -r requirements/all.txt 
+```
+Checkout to a new branch, add your feature and some tests, then try:
+```shell
+make precommit
+```
+
+If the result is ok, create a pull request to "dev" branch of this repo with a detailed description.  
+Done!  

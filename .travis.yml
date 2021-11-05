@@ -1,5 +1,7 @@
 language: python
 
+cache: pip
+
 env:
   global:
     - TAG=${TRAVIS_TAG:-1}
@@ -8,20 +10,12 @@ jobs:
   include:
     - stage: linters
       name: "Static code analysis"
-      python:
-        - "3.6"
-        - "3.7"
-        - "3.8"
-      install: pip install -r tests/requirements/all.txt
+      install: pip install -r requirements/all.txt
       script: make analyze
 
     - stage: test
       name: "Run unit tests"
-      python:
-        - "3.6"
-        - "3.7"
-        - "3.8"
-      install: pip install -r tests/requirements/all.txt
+      install: pip install -r requirements/all.txt
       script:
         - make test
         - make coverage

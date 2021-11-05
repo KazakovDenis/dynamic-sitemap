@@ -8,6 +8,8 @@ coverage:
 	python -m coverage report
 	python -m coverage html
 
+precommit: analyze test coverage
+
 build:
 	python setup.py sdist -d pypi bdist_wheel -d pypi
 	rm -r *.egg-info build

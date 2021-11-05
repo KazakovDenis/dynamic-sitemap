@@ -20,12 +20,12 @@ Basic example with some Models:
     sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
     sitemap.config.ALTER_PRIORITY = 0.1
     sitemap.ignore('/edit', '/upload')
-    sitemap.add_items('/faq', {'loc': '/about', 'priority': 0.7})
-    sitemap.add_rule('/blog', Post, lastmod_from='created', priority=1.0)
-    sitemap.add_rule('/blog/tag', Tag, changefreq=ChangeFreq.DAILY.value)
+    sitemap.add_items(['/faq', {'loc': '/about', 'priority': 0.7}])
+    sitemap.add_rule('/blog', Post, loc_from='slug', priority=1.0)
+    sitemap.add_rule('/blog/tag', Tag, loc_from='id', changefreq=ChangeFreq.DAILY.value)
     sitemap.build()
 
-IGNORED has a priority over add_rule. Also you can set configurations from your class:
+Also you can set configurations from your class:
 
     class Config:
         FILENAME = 'static/sitemap.xml'
@@ -43,15 +43,13 @@ from .validators import ChangeFreq
 
 
 __author__ = 'Denis Kazakov'
-__about__ = dict(
-    __title__='dynamic-sitemap',
-    __module__=__package__,
-    __version__='0.2.0a0',
-    __url__='https://github.com/KazakovDenis/dynamic-sitemap',
-
-    __author__=__author__,
-    __email__='denis@kazakov.ru.net',
-
-    __license__='MIT',
-    __copyright__=f'Copyright 2020 {__author__}',
-)
+__about__ = {
+    'title': 'dynamic-sitemap',
+    'module': __package__,
+    'version': '0.2.0a0',
+    'url': 'https://github.com/KazakovDenis/dynamic-sitemap',
+    'author': __author__,
+    'email': 'denis@kazakov.ru.net',
+    'license': 'MIT',
+    'copyright': f'Copyright 2020 {__author__}',
+}
