@@ -3,8 +3,7 @@ import pytest
 from dynamic_sitemap import SitemapConfig
 from dynamic_sitemap.exceptions import SitemapIOError, SitemapValidationError
 from dynamic_sitemap.validators import get_validated
-
-from tests.utils import TRUE_INSTANCES, TEST_URL, ORMModel
+from tests.utils import TEST_URL, TRUE_INSTANCES, ORMModel
 
 
 @pytest.mark.parametrize('obj', TRUE_INSTANCES)

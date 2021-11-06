@@ -1,4 +1,5 @@
 analyze:
+	isort -c dynamic_sitemap tests
 	flake8
 	mypy
 

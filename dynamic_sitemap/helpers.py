@@ -1,8 +1,11 @@
 from collections import namedtuple
 from datetime import datetime
+from typing import (
+    Callable, Collection, Iterable, Iterator, Optional, Set, Tuple, Type,
+)
+from urllib.parse import urljoin, urlparse
+
 from pytz import timezone
-from typing import Callable, Collection, Iterable, Iterator, Set, Tuple, Type, Optional
-from urllib.parse import urlparse, urljoin
 
 from .exceptions import SitemapItemError, SitemapValidationError
 from .items import SitemapItemBase

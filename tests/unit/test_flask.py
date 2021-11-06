@@ -6,6 +6,7 @@ import pytest
 from dynamic_sitemap import FlaskSitemap
 from tests.utils import TEST_URL
 
+
 try:
     from flask import Flask
     from flask_sqlalchemy import SQLAlchemy

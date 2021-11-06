@@ -6,9 +6,11 @@ from uuid import uuid4
 
 import pytest
 
-from dynamic_sitemap import SitemapConfig, ChangeFreq
+from dynamic_sitemap import ChangeFreq, SitemapConfig
 from dynamic_sitemap.helpers import join_url_path
-from tests.utils import TEST_DATE_STR, TEST_TIME_STR, TEST_URL, ORMModel, SitemapMock
+from tests.utils import (
+    TEST_DATE_STR, TEST_TIME_STR, TEST_URL, ORMModel, SitemapMock,
+)
 
 
 @pytest.mark.parametrize('obj', [

@@ -1,5 +1,5 @@
 import enum
-from re import match, VERBOSE
+from re import VERBOSE, match
 from typing import Generic, List, Optional, TypeVar, Union
 from urllib.parse import urlparse
 

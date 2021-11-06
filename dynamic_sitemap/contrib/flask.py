@@ -36,16 +36,17 @@ Also you can set configurations from your class:
     sitemap.write()
 """
 import logging
-from typing import Sequence, Union, List
+from typing import List, Sequence, Union
 
 from ..config import ConfType
 from ..core import DynamicSitemapBase
 from ..exceptions import SitemapValidationError
 
+
 try:
     from flask import Flask
 except ImportError:
-    Flask = type    # type: ignore
+    Flask = object    # type: ignore
 
 
 logger = logging.getLogger(__name__)
