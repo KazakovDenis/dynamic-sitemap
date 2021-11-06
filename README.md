@@ -4,11 +4,7 @@
 [![codecov](https://codecov.io/gh/KazakovDenis/dynamic-sitemap/branch/master/graph/badge.svg)](https://codecov.io/gh/KazakovDenis/dynamic-sitemap)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/dynamic-sitemap)
 
-A simple sitemap generator for Python projects.
-
-Already implemented:
-- metaclass SitemapMeta
-- FlaskSitemap
+The simple sitemap generator for Python projects.
 
 ## Installation
 - using pip  
@@ -17,61 +13,90 @@ pip install dynamic-sitemap
 ```
   
 ## Usage
-"Hello world" example:
+### Static
 ```python
-from framework import Framework
-from dynamic_sitemap import FrameworkSitemap
+from datetime import datetime
+from dynamic_sitemap import SimpleSitemap, ChangeFreq
 
-app = Framework(__name__)
-sitemap = FrameworkSitemap(app, 'https://mysite.com')
-sitemap.update()
+urls = [
+    '/',
+    {'loc': '/contacts', 'changefreq': ChangeFreq.NEVER.value},
+    {'loc': '/about', 'priority': 0.9, 'lastmod': datetime.now().isoformat()},
+]
+sitemap = SimpleSitemap('https://mysite.com', urls)
+# or sitemap.render()
+sitemap.write('static/sitemap.xml')
+```
+### Dynamic
+Only FlaskSitemap is implemented yet, so there is an example:
+```python
+from dynamic_sitemap import FlaskSitemap
+from flask import Flask
+
+app = Flask(__name__)
+sitemap = FlaskSitemap(app, 'https://mysite.com')
+sitemap.build()
 ```
 Then run your server and visit http://mysite.com/sitemap.xml.  
 
-Basic example with some Models:
+The basic example with some Models:
 ```python
-from framework import Framework
-from dynamic_sitemap import FrameworkSitemap
+from dynamic_sitemap import ChangeFreq, FlaskSitemap
+from flask import Flask
 from models import Post, Tag
 
-app = Framework(__name__)
-sitemap = FrameworkSitemap(app, 'https://mysite.com', orm='sqlalchemy')
-sitemap.config.IGNORED.update(['/edit', '/upload'])
-sitemap.config.TEMPLATE_FOLDER = 'templates'
+app = Flask(__name__)
+sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
 sitemap.config.TIMEZONE = 'Europe/Moscow'
-sitemap.update()
-sitemap.add_elem('/faq', changefreq='monthly', priority=0.4)
-sitemap.add_rule('/blog', Post, lastmod_attr='created', priority=1.0)
-sitemap.add_rule('/blog/tag', Tag, changefreq='daily')
+sitemap.ignore('/edit', '/upload')
+sitemap.add_items(
+    '/contacts',
+    {'loc': '/faq', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
+)
+sitemap.add_rule('/blog', Post, loc_from='slug', priority=1.0)
+sitemap.add_rule('/blog/tag', Tag, loc_from='id', changefreq='daily')
+sitemap.build()
 ```
 
 Also you can set configurations from your class (and __it's preferred__):
+
 ```python
-sm_logger = logging.getLogger('sitemap')
-sm_logger.setLevel(30)
+from dynamic_sitemap import ChangeFreq, FlaskSitemap
+from flask import Flask
+from models import Product
 
 class Config:
-    TEMPLATE_FOLDER = os.path.join(ROOT, 'app', 'templates')
+    FILENAME = 'static/sitemap.xml'
     IGNORED = {'/admin', '/back-office', '/other-pages'}
     ALTER_PRIORITY = 0.1
-    LOGGER = sm_logger
 
-sitemap = FrameworkSitemap(app, 'https://myshop.org', config_obj=Config)
-sitemap.add_elem('/about', changefreq='monthly', priority=0.4)
-sitemap.add_rule('/goods', Product, loc_attr='id', lastmod_attr='updated')
+app = Flask(__name__)
+sitemap = FlaskSitemap(app, 'https://myshop.org', config=Config)
+sitemap.add_items(
+    '/contacts',
+    {'loc': '/about', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
+)
+sitemap.add_rule('/goods', Product, loc_from='id', lastmod_from='updated')
+sitemap.build()
 ```
-Moreover you can get a static file by using:
-```python
-sitemap.build_static()
-```
-
-Some important rules:  
-- use update() method after setting configuration attributes directly (not need if you pass your config object to init)
-- use get_dynamic_rules() to see which urls you should add as a rule or to ignored
-- *config.IGNORED* has a priority over *add_rule*
-- use helpers.Model if your ORM is not supported
 
 Not supported yet:
 - urls with more than 1 converter, such as `/page/<int:user_id>/<str:slug>`
 
-Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/CHANGELOG.md)
+Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/CHANGELOG.md).  
+
+## Contributing
+Feel free to suggest any improvements :)  
+
+## Development
+Fork this repository, clone it and install dependencies:
+```shell
+pip install -r requirements/all.txt 
+```
+Checkout to a new branch, add your feature and some tests, then try:
+```shell
+make precommit
+```
+
+If the result is ok, create a pull request to "dev" branch of this repo with a detailed description.  
+Done!  

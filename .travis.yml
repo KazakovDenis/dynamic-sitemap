@@ -1,14 +1,38 @@
 language: python
-python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
 
-install:
-  - pip install -r tests/requirements/all.txt
+cache: pip
 
-script:
-  - python -m coverage run && coverage report
+env:
+  global:
+    - TAG=${TRAVIS_TAG:-1}
 
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+jobs:
+  include:
+    - stage: linters
+      name: "Static code analysis"
+      install: pip install -r requirements/all.txt
+      script: make analyze
+
+    - stage: test
+      name: "Run unit tests"
+      install: pip install -r requirements/all.txt
+      script:
+        - make test
+        - make coverage
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
+
+    - stage: publish
+      name: "Publish sources to PYPI"
+      install: skip
+      script: make build
+      deploy:
+        provider: pypi
+        username: "__token__"
+        password: $PYPI_TOKEN
+
+stages:
+  - linters
+  - test
+  - name: publish
+    if: (branch = master) AND (tag IS present)
