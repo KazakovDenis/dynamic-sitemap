@@ -2,7 +2,7 @@ import pytest
 
 from dynamic_sitemap import SitemapConfig
 from dynamic_sitemap.exceptions import SitemapIOError, SitemapValidationError
-from dynamic_sitemap.validators import get_validated
+from dynamic_sitemap.validators import Timezone, get_validated
 from tests.utils import TEST_URL, TRUE_INSTANCES, ORMModel
 
 
@@ -92,6 +92,22 @@ def test_default_validate_priority(priority):
     """Test how priority validation works."""
     with pytest.raises(SitemapValidationError):
         get_validated(priority=priority)
+
+
+@pytest.mark.parametrize('timezone', [1, 'Bad timezone'])
+def test_default_validate_timezone_raises(timezone):
+    """Test how timezone validation works."""
+    with pytest.raises(SitemapValidationError):
+        Timezone.validate(timezone)
+
+
+@pytest.mark.parametrize('timezone, result', [
+    (None, False),
+    ('Asia/Tokyo', True),
+])
+def test_default_validate_timezone(timezone, result):
+    """Test how timezone validation works."""
+    assert bool(Timezone.validate(timezone)) is result
 
 
 @pytest.mark.parametrize('fn1, fn2, error', [
