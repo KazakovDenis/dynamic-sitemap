@@ -17,9 +17,9 @@ build:
 	rm -r *.egg-info build
 
 release: build
-	twine check dist/*
+	twine check pypi/*
 	twine upload --repository pypi pypi/*
 
 test_release: build
-	twine check dist/*
+	twine check pypi/*
 	twine upload --repository testpypi pypi/*

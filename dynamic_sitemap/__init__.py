@@ -46,7 +46,7 @@ __author__ = 'Denis Kazakov'
 __about__ = {
     'title': 'dynamic-sitemap',
     'module': __package__,
-    'version': '1.0.0a',
+    'version': '1.0.0a1',
     'url': 'https://github.com/KazakovDenis/dynamic-sitemap',
     'author': __author__,
     'email': 'denis@kazakov.ru.net',

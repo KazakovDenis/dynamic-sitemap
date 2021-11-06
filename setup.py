@@ -21,6 +21,9 @@ if __name__ == '__main__':
         long_description_content_type='text/markdown',
         keywords='sitemap',
         packages=[about['module']],
+        package_data={
+            about['module']: ['contrib/*'],
+        },
         install_requires=['pytz>=2020.1'],
         classifiers=[
             'Development Status :: 3 - Alpha',
