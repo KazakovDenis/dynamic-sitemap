@@ -21,6 +21,8 @@ _QUERIES = {
     'local': lambda model: model.all(),
 }
 
+Extractor = Callable[..., Iterable[Tuple[str, datetime]]]
+
 
 class Model:
     """A class that helps you to introduce an SQL query as ORM Model
@@ -42,10 +44,10 @@ class Model:
     """
     slug = lastmod = True
 
-    def __init__(self, extractor: Callable[..., Iterable[Tuple[str, datetime]]]):
+    def __init__(self, extractor: Extractor):
         self.extract = extractor
 
-    def all(self) -> Iterator[_Row]:
+    def all(self) -> Iterator[_Row]:     # noqa: A003
         return (_Row(slug=i[0], lastmod=i[1]) for i in self.extract())
 
 
@@ -110,7 +112,7 @@ def get_items(raw_data: Collection,
     for item in raw_data:
         if isinstance(item, dict):
             data = item
-        elif isinstance(item, str):
+        elif isinstance(item, str):    # noqa: SIM106
             data = {'loc': item}
         else:
             raise SitemapItemError('Bad item', item)

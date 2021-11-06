@@ -69,21 +69,23 @@ class LastModified(Parameter):
         if value is None:
             return None
 
-        pattern = r"""
-        (?P<date>
-            (?P<year>20[0-9]{2})-
-            (?P<month>0[0-9]|1[0-2])-
-            (?P<day>[0-2][0-9]|3[0-1])
-        )
-        (T
-            (?P<time>
-                (?P<hours>[0-1][0-9]|2[0-3]):
-                (?P<minutes>[0-5][0-9]):
-                (?P<seconds>[0-5][0-9])
+        pattern = (
+            """
+            (?P<date>
+                (?P<year>20[0-9]{2})-
+                (?P<month>0[0-9]|1[0-2])-
+                (?P<day>[0-2][0-9]|3[0-1])
             )
-            (?P<timezone>[+-][0-5][0-9]:[0-5][0-9])?
-        )?
-        """
+            (T
+                (?P<time>
+                    (?P<hours>[0-1][0-9]|2[0-3]):
+                    (?P<minutes>[0-5][0-9]):
+                    (?P<seconds>[0-5][0-9])
+                )
+                (?P<timezone>[+-][0-5][0-9]:[0-5][0-9])?
+            )?
+            """
+        )
 
         if not (
             isinstance(value, str) and match(pattern, value, VERBOSE)

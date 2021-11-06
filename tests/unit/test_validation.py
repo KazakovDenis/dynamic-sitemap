@@ -38,7 +38,7 @@ def test_default_create_map(sitemap_cls, url, orm, config):
     pytest.param(5, id='Greater priority'),
     pytest.param(-1, id='Negative priority'),
     pytest.param('0.5', id='String priority'),
-    pytest.param('high', id='Wrong type priority')
+    pytest.param('high', id='Wrong type priority'),
 ])
 def test_default_add_rule_priority(sitemap, priority):
     """Assertion error should be raised when priority is not in range 0.0-1.0.

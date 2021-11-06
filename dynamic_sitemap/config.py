@@ -55,7 +55,7 @@ class SitemapConfig(dict):
             if key.isupper():
                 self[key] = getattr(obj, key)
 
-    def _validate(self, obj):
+    def _validate(self, obj: ConfType):
         if not isinstance(obj, (type, type(self))):
             raise SitemapValidationError('This type of object is not supported yet')
 
@@ -69,14 +69,14 @@ class SitemapConfig(dict):
 
         cache_period = getattr(obj, 'CACHE_PERIOD', None)
         if cache_period and not (
-            isinstance(obj.CACHE_PERIOD, (int, float))
-            and obj.CACHE_PERIOD > 0.0
+            isinstance(cache_period, (int, float))
+            and cache_period > 0.0
         ):
             raise SitemapValidationError('CACHE_PERIOD should be a float greater than 0.0')
 
     def __set__(self, instance, value):
         raise SitemapValidationError(
-            'You could not change configuration this way. Use "from_object" method or set specific attribute'
+            'You could not change configuration this way. Use "from_object" method or set specific attribute',
         )
 
     def __setitem__(self, key, value):

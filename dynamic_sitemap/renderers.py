@@ -33,10 +33,10 @@ class XMLRendererBase(RendererBase):
 
     def render(self) -> str:
         """Render a sitemap."""
-        file = BytesIO()
+        io = BytesIO()
         tree = self.get_tree()
-        tree.write(file, xml_declaration=True, encoding='UTF-8')
-        return file.getvalue().decode()
+        tree.write(io, xml_declaration=True, encoding='UTF-8')
+        return io.getvalue().decode()
 
     def write(self, filename: str):
         """Write a sitemap to a file."""

@@ -15,7 +15,7 @@ from tests.utils import (
 
 @pytest.mark.parametrize('obj', [
     SitemapConfig(),
-    type('Config', tuple(), {}),
+    type('Config', tuple(), {}),    # noqa: C408
 ])
 def test_config_from_obj(config, obj):
     """Test configuration's setters and getters"""
@@ -55,7 +55,7 @@ def test_default_add_items(sitemap, monkeypatch):
     monkeypatch.setattr(sitemap, '_without_ignored', lambda: [])
     sitemap.add_items([
         '/page1',
-        dict(loc='/', lastmod='2020-01-01', changefreq='weekly', priority=0.8),
+        {'loc': '/', 'lastmod': '2020-01-01', 'changefreq': 'weekly', 'priority': 0.8},
     ])
     assert not sitemap.items
 
@@ -117,7 +117,7 @@ def test_default_without_ignored(sitemap):
     pytest.param(False, [], 1, datetime.now(), id='No data, cache enabled'),
     pytest.param(False, [1], None, datetime.now(), id='Data exists, cache disabled'),
     pytest.param(False, [1], 1, datetime(2020, 1, 1), id='Data exists, cache enabled, time not expired'),
-    pytest.param(True, [1], 1, datetime(2050, 1, 1), id='Data exists, cache enabled, time expired')
+    pytest.param(True, [1], 1, datetime(2050, 1, 1), id='Data exists, cache enabled, time expired'),
 ])
 def test_default_should_use_cache(sitemap, result, items, cache_period, timestamp):
     """Test conditions to use cache."""

@@ -181,7 +181,11 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
             raise SitemapValidationError('Priority should be float.')
         get_validated(loc=path, changefreq=changefreq, priority=priority)
 
-        for attr in (loc_from, lastmod_from if lastmod_from else loc_from,):
+        to_check = [loc_from]
+        if lastmod_from:
+            to_check.append(lastmod_from)
+
+        for attr in to_check:
             try:
                 getattr(model, attr)
             except AttributeError:
@@ -199,7 +203,7 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
                 'lastmod_from': lastmod_from,
                 'changefreq': changefreq or self.config.CONTENT_CHANGES,
                 'priority': priority or self.config.CONTENT_PRIORITY,
-            }
+            },
         )
 
     @abstractmethod
