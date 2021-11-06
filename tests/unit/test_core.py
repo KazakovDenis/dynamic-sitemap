@@ -53,10 +53,10 @@ def test_default_build(sitemap, monkeypatch):
 def test_default_add_items(sitemap, monkeypatch):
     """Test an item creation."""
     monkeypatch.setattr(sitemap, '_without_ignored', lambda: [])
-    sitemap.add_items([
+    sitemap.add_items(
         '/page1',
         {'loc': '/', 'lastmod': '2020-01-01', 'changefreq': 'weekly', 'priority': 0.8},
-    ])
+    )
     assert not sitemap.items
 
     sitemap.build()
@@ -133,7 +133,7 @@ def test_default_prepare_data_static(sitemap):
     sitemap.config.INDEX_PRIORITY = 1.0
     sitemap.config.ALTER_PRIORITY = 0.3
     sitemap.config.ALTER_CHANGES = ChangeFreq.WEEKLY.value
-    sitemap.add_items(['/test', '/page'])
+    sitemap.add_items('/test', '/page')
     sitemap.build()
     items = sorted(sitemap.items, key=attrgetter('loc'))
     assert TEST_URL in items[-1].loc

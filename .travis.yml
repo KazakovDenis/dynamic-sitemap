@@ -15,7 +15,6 @@ jobs:
 
     - stage: test
       name: "Run unit tests"
-      install: pip install -r requirements/all.txt
       script:
         - make test
         - make coverage

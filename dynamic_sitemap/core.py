@@ -10,6 +10,7 @@ from . import helpers
 from .exceptions import (
     SitemapIOError, SitemapItemError, SitemapValidationError,
 )
+from .helpers import Model, ORMModel
 from .items import SitemapIndexItem, SitemapItem, SitemapItemBase
 from .renderers import (
     RendererBase, SitemapIndexXMLRenderer, SitemapXMLRenderer,
@@ -48,7 +49,7 @@ class SitemapBase:
         else:
             logger.info('Static sitemap is ready: %s', filename)
 
-    def add_items(self, items: Sequence[Union[dict, str]]):
+    def add_items(self, *items: Union[dict, str]):
         """Add static items to a sitemap."""
         if self.initialized:
             raise SitemapItemError('Sitemap has already been initialized.')
@@ -161,7 +162,7 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
 
     def add_rule(self,
                  path: str,
-                 model: type,
+                 model: ORMModel,
                  loc_from: str,
                  lastmod_from: str = None,
                  changefreq: str = None,
@@ -205,6 +206,16 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
                 'priority': priority or self.config.CONTENT_PRIORITY,
             },
         )
+
+    def add_raw_rule(self, path: str, model: Model, changefreq: str = None, priority: float = None):
+        """Add a rule for non-ORM project.
+
+        :param path: a part of URI is used to get a page generated through a model
+        :param model: a model of an app that has a slug, e.g. an instance of SQLAlchemy.Model
+        :param changefreq: how often this URL changes (daily, weekly, etc.)
+        :param priority: a priority of URL to be set
+        """
+        self.add_rule(path, model, 'slug', 'lastmod', changefreq, priority)
 
     @abstractmethod
     def view(self, *args, **kwargs):

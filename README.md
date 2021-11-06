@@ -4,12 +4,7 @@
 [![codecov](https://codecov.io/gh/KazakovDenis/dynamic-sitemap/branch/master/graph/badge.svg)](https://codecov.io/gh/KazakovDenis/dynamic-sitemap)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/dynamic-sitemap)
 
-A simple sitemap generator for Python projects.
-
-Already implemented:
-- SimpleSitemap
-- SimpleSitemapIndex
-- FlaskSitemap
+The simple sitemap generator for Python projects.
 
 ## Installation
 - using pip  
@@ -29,8 +24,8 @@ urls = [
     {'loc': '/about', 'priority': 0.9, 'lastmod': datetime.now().isoformat()},
 ]
 sitemap = SimpleSitemap('https://mysite.com', urls)
-sitemap.write('static/sitemap.xml')
 # or sitemap.render()
+sitemap.write('static/sitemap.xml')
 ```
 ### Dynamic
 Only FlaskSitemap is implemented yet, so there is an example:
@@ -46,7 +41,7 @@ Then run your server and visit http://mysite.com/sitemap.xml.
 
 The basic example with some Models:
 ```python
-from dynamic_sitemap import FlaskSitemap
+from dynamic_sitemap import ChangeFreq, FlaskSitemap
 from flask import Flask
 from models import Post, Tag
 
@@ -54,10 +49,10 @@ app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
 sitemap.config.TIMEZONE = 'Europe/Moscow'
 sitemap.ignore('/edit', '/upload')
-sitemap.add_items([
+sitemap.add_items(
     '/contacts',
     {'loc': '/faq', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
-])
+)
 sitemap.add_rule('/blog', Post, loc_from='slug', priority=1.0)
 sitemap.add_rule('/blog/tag', Tag, loc_from='id', changefreq='daily')
 sitemap.build()
@@ -77,10 +72,10 @@ class Config:
 
 app = Flask(__name__)
 sitemap = FlaskSitemap(app, 'https://myshop.org', config=Config)
-sitemap.add_items([
+sitemap.add_items(
     '/contacts',
     {'loc': '/about', 'changefreq': ChangeFreq.MONTHLY.value, 'priority': 0.4},
-])
+)
 sitemap.add_rule('/goods', Product, loc_from='id', lastmod_from='updated')
 sitemap.build()
 ```

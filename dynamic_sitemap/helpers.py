@@ -21,10 +21,15 @@ _QUERIES = {
     'local': lambda model: model.all(),
 }
 
+
+class ORMModel:
+    """Just the mock representing models of different ORMs."""
+
+
 Extractor = Callable[..., Iterable[Tuple[str, datetime]]]
 
 
-class Model:
+class Model(ORMModel):
     """A class that helps you to introduce an SQL query as ORM Model
 
     Example:
@@ -39,8 +44,7 @@ class Model:
 
         post = Model(extract_posts)
         sitemap = FlaskSitemap(app, 'https://mysite.com')
-        # should be only 'slug' and 'lastmod'
-        sitemap.add_rule('/post', post, loc_from='slug', lastmod_from='lastmod')
+        sitemap.add_raw_rule('/post', post)
     """
     slug = lastmod = True
 

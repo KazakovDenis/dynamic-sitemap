@@ -12,7 +12,7 @@ to the protocol https://www.sitemaps.org/protocol.html.
 
 Basic example with some Models:
 
-    from dynamic_sitemap import FrameworkSitemap
+    from dynamic_sitemap import ChangeFreq, FlaskSitemap
     from flask import Flask
     from models import Post, Tag
 
@@ -20,7 +20,7 @@ Basic example with some Models:
     sitemap = FlaskSitemap(app, 'https://mysite.com', orm='sqlalchemy')
     sitemap.config.ALTER_PRIORITY = 0.1
     sitemap.ignore('/edit', '/upload')
-    sitemap.add_items(['/faq', {'loc': '/about', 'priority': 0.7}])
+    sitemap.add_items('/faq', {'loc': '/about', 'priority': 0.7})
     sitemap.add_rule('/blog', Post, loc_from='slug', priority=1.0)
     sitemap.add_rule('/blog/tag', Tag, loc_from='id', changefreq=ChangeFreq.DAILY.value)
     sitemap.build()
@@ -46,7 +46,7 @@ __author__ = 'Denis Kazakov'
 __about__ = {
     'title': 'dynamic-sitemap',
     'module': __package__,
-    'version': '0.2.0a0',
+    'version': '1.0.0a',
     'url': 'https://github.com/KazakovDenis/dynamic-sitemap',
     'author': __author__,
     'email': 'denis@kazakov.ru.net',
