@@ -23,3 +23,6 @@ release: build
 test_release: build
 	twine check pypi/*
 	twine upload --repository testpypi pypi/*
+
+docs:
+	sphinx-build -b html docs/source/ docs/build/html
