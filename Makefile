@@ -24,5 +24,5 @@ test_release: build
 	twine check pypi/*
 	twine upload --repository testpypi pypi/*
 
-docs:
-	sphinx-build -b html docs/source/ docs/build/html
+doc:
+	sphinx-build -b html docs/ docs/_build/html

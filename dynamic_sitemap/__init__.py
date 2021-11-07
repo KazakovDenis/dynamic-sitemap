@@ -41,6 +41,7 @@ from datetime import date
 from .config import SitemapConfig
 from .contrib.flask import FlaskSitemap
 from .core import SimpleSitemap, SimpleSitemapIndex
+from .helpers import Model
 from .validators import ChangeFreq
 
 

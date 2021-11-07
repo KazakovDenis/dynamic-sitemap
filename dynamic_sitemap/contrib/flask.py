@@ -53,7 +53,17 @@ logger = logging.getLogger(__name__)
 
 
 class FlaskSitemap(DynamicSitemapBase):
-    """A sitemap generator for a Flask application. For usage see the module documentation."""
+    """The sitemap generator for a Flask application.
+
+    :param app: an instance of Flask application
+    :param base_url: a base URL such as 'http://site.com'
+    :param items: list of strings or dicts to generate static sitemap items
+    :param config: a class with configurations
+    :param orm: an ORM name used in project
+
+    :raises: SitemapValidationError - if ORM extension is not found.
+    """
+
     endpoint = 'dynamic_sitemap'
     rule = '/sitemap.xml'
 
@@ -63,14 +73,6 @@ class FlaskSitemap(DynamicSitemapBase):
                  items: Sequence[Union[dict, str]] = (),
                  config: ConfType = None,
                  orm: str = None):
-        """An instance of a Sitemap.
-
-        :param app: an instance of Flask application
-        :param base_url: a base URL such as 'http://site.com'
-        :param items: list of strings or dicts to generate static sitemap items
-        :param config: a class with configurations
-        :param orm: an ORM name used in project
-        """
         super().__init__(base_url, items, config, orm)
         self.app = app
 

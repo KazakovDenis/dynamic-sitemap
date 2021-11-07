@@ -95,7 +95,8 @@ def test_default_write_from_config(sitemap, request):
     filename = str(uuid4())
 
     def teardown():
-        os.unlink(filename)
+        if os.path.exists(filename):
+            os.unlink(filename)
     request.addfinalizer(teardown)
 
     sitemap.config.FILENAME = filename
