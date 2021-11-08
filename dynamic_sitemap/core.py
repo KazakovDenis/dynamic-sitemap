@@ -127,6 +127,7 @@ RULE_EXP = re.compile(r'<(\w+:)?\w+>')
 
 
 class DynamicSitemapBase(ConfigurableSitemap, ABC):
+    """The base class used to generate dynamic sitemaps."""
 
     def __init__(self,
                  base_url: str = '',
@@ -157,9 +158,11 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         """Prepare a sitemap to be rendered or written to a file.
 
         Example:
-            >>> from dynamic_sitemap import FrameworkSitemap
+            >>> from dynamic_sitemap import FlaskSitemap
+            >>> from flask import Flask
             >>>
-            >>> sitemap = FrameworkSitemap(app, 'http://site.com')
+            >>> app = Flask(__name__)
+            >>> sitemap = FlaskSitemap(app, 'http://site.com')
             >>> sitemap.add_items('/about', '/contacts')
             >>> sitemap.build()
         """

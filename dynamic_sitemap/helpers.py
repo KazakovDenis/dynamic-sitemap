@@ -34,24 +34,8 @@ class Model(ORMModel):
     Used with ``add_raw_rule``.
 
     :param extractor: a function that fetches loc & lastmod from a database.
-
-    Example:
-        >>> from flask import Flask
-        >>> from db import connect
-        >>>
-        >>> app = Flask(__name__)
-        >>> db = connect(DB_ADDRESS)
-        >>>
-        >>> def extract_posts():
-        >>>     query = 'SELECT slug, updated FROM posts;'
-        >>>     with db.execute(query) as cursor:
-        >>>         rows = cursor.fetchall()
-        >>>     return iter(rows)
-        >>>
-        >>> post = Model(extract_posts)
-        >>> sitemap = FlaskSitemap(app, 'https://site.com')
-        >>> sitemap.add_raw_rule('/posts/', post)
     """
+
     slug = lastmod = True
 
     def __init__(self, extractor: Extractor):

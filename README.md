@@ -83,7 +83,7 @@ sitemap.build()
 Not supported yet:
 - urls with more than 1 converter, such as `/page/<int:user_id>/<str:slug>`
 
-Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/CHANGELOG.md).  
+Check out the [Changelog](https://github.com/KazakovDenis/dynamic-sitemap/blob/master/docs/changelog.rst).  
 
 ## Contributing
 Feel free to suggest any improvements :)  

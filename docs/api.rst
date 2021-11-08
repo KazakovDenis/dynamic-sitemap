@@ -15,6 +15,8 @@ SimpleSitemap
 FlaskSitemap
 ````````````
 
+.. _flask-sitemap:
+
 .. autoclass:: dynamic_sitemap.contrib.flask.FlaskSitemap
     :members:
     :inherited-members:
@@ -37,6 +39,8 @@ Configuration
 
 Helpers
 -------------
+
+.. _helpers-model:
 
 .. autoclass:: dynamic_sitemap.helpers.Model
     :members:
