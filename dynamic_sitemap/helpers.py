@@ -30,22 +30,12 @@ Extractor = Callable[..., Iterable[Tuple[str, datetime]]]
 
 
 class Model(ORMModel):
-    """A class that helps you to introduce an SQL query as ORM Model
+    """The class to use instead of ORM models.
+    Used with ``add_raw_rule``.
 
-    Example:
-        app = Flask(__name__)
-        db = connect(DB_ADDRESS)
-
-        def extract_posts():
-            query = 'SELECT slug, updated FROM posts'
-            with db.execute(query) as cursor:
-                rows = cursor.fetchall()
-            return iter(rows)
-
-        post = Model(extract_posts)
-        sitemap = FlaskSitemap(app, 'https://mysite.com')
-        sitemap.add_raw_rule('/post', post)
+    :param extractor: a function that fetches loc & lastmod from a database.
     """
+
     slug = lastmod = True
 
     def __init__(self, extractor: Extractor):

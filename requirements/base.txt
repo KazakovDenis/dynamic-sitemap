@@ -24,8 +24,10 @@ flake8-typing-imports
 flake8-variables-names
 isort
 mypy
+myst-parser
 pep8-naming
 pytest
 pytz
+sphinx
 twine
 types-pytz

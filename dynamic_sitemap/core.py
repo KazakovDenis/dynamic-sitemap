@@ -37,7 +37,7 @@ class SitemapBase:
         renderer = self._get_renderer()
         return renderer.render()
 
-    def write(self, filename: str):
+    def write(self, filename: str = 'sitemap.xml'):
         """Write a sitemap to a file."""
         renderer = self._get_renderer()
         try:
@@ -69,16 +69,19 @@ class SitemapBase:
 
 
 class SimpleSitemapIndex(SitemapBase):
+    """The simple sitemap index generator."""
     renderer_cls = SitemapIndexXMLRenderer
     item_cls = SitemapIndexItem
 
 
 class SimpleSitemap(SitemapBase):
+    """The simple sitemap generator."""
     renderer_cls = SitemapXMLRenderer
     item_cls = SitemapItem
 
 
 class ConfigurableSitemap(SimpleSitemap):
+    """The class to create configurable sitemaps."""
     config = conf.SitemapConfig()
     content_type = 'application/xml'
 
@@ -87,8 +90,10 @@ class ConfigurableSitemap(SimpleSitemap):
         self.config.from_object(config)
         self.started_at = helpers.get_iso_datetime(datetime.now(), self.config.TIMEZONE)
 
-    def write(self, filename: str = ''):
-        super().write(filename or self.config.FILENAME)
+    def write(self, filename: str = 'sitemap.xml'):
+        if filename == 'sitemap.xml' or not filename:
+            filename = self.config.FILENAME or filename
+        super().write(filename)
 
     def ignore(self, *patterns):
         """Add URLs which would be igrnored."""
@@ -122,6 +127,7 @@ RULE_EXP = re.compile(r'<(\w+:)?\w+>')
 
 
 class DynamicSitemapBase(ConfigurableSitemap, ABC):
+    """The base class used to generate dynamic sitemaps."""
 
     def __init__(self,
                  base_url: str = '',
@@ -152,9 +158,13 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         """Prepare a sitemap to be rendered or written to a file.
 
         Example:
-            sitemap = FrameworkSitemap(app, 'http://site.com')
-            sitemap.add_items(['/about', '/contacts'])
-            sitemap.build()
+            >>> from dynamic_sitemap import FlaskSitemap
+            >>> from flask import Flask
+            >>>
+            >>> app = Flask(__name__)
+            >>> sitemap = FlaskSitemap(app, 'http://site.com')
+            >>> sitemap.add_items('/about', '/contacts')
+            >>> sitemap.build()
         """
         self._get_rules()
         self._get_items()
@@ -167,7 +177,7 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
                  lastmod_from: str = None,
                  changefreq: str = None,
                  priority: float = None):
-        """Add a rule to generate urls by a template using models of an app.
+        """Add a rule to generate urls by a template using a specified model.
 
         :param path: a part of URI is used to get a page generated through a model
         :param model: a model of an app that has a slug, e.g. an instance of SQLAlchemy.Model
@@ -211,7 +221,7 @@ class DynamicSitemapBase(ConfigurableSitemap, ABC):
         """Add a rule for non-ORM project.
 
         :param path: a part of URI is used to get a page generated through a model
-        :param model: a model of an app that has a slug, e.g. an instance of SQLAlchemy.Model
+        :param model: helpers.Model with some extractor
         :param changefreq: how often this URL changes (daily, weekly, etc.)
         :param priority: a priority of URL to be set
         """

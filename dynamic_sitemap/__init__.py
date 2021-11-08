@@ -36,11 +36,16 @@ Also you can set configurations from your class:
     sitemap.add_rule('/goods', Product, loc_from='id', lastmod_from='updated')
     sitemap.write()
 """
+from datetime import date
+
 from .config import SitemapConfig
 from .contrib.flask import FlaskSitemap
 from .core import SimpleSitemap, SimpleSitemapIndex
+from .helpers import Model
 from .validators import ChangeFreq
 
+
+_YEAR = date.today().year
 
 __author__ = 'Denis Kazakov'
 __about__ = {
@@ -51,5 +56,5 @@ __about__ = {
     'author': __author__,
     'email': 'denis@kazakov.ru.net',
     'license': 'MIT',
-    'copyright': f'Copyright 2020 {__author__}',
+    'copyright': f'Copyright 2020-{_YEAR} {__author__}',
 }
